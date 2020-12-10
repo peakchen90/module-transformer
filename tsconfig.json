@@ -1,0 +1,28 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "module": "es6",
+    "target": "esnext",
+    "outDir": "dist",
+    "lib": [
+      "esnext"
+    ],
+    "jsx": "preserve",
+    "jsxFactory": "React.createElement",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    "noImplicitAny": true,
+    "strict": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "baseUrl": ".",
+    "paths": {
+    }
+  },
+  "include": [
+    "src",
+    "test"
+  ]
+}

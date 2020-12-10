@@ -1,0 +1,81 @@
+{
+  "name": "module-transformer",
+  "version": "0.0.1-alpha.0",
+  "main": "index.js",
+  "types": "",
+  "sideEffects": false,
+  "scripts": {
+    "start": "rollup -c -w",
+    "build": "rollup -c",
+    "lint": "eslint {src,test}/**/*.ts --fix"
+  },
+  "homepage": "https://github.com/peakchen90/module-transformer",
+  "bugs": {
+    "url": "https://github.com/peakchen90/module-transformer/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:peakchen90/module-transformer.git"
+  },
+  "author": "peakchen90 <1558267774@qq.com>",
+  "license": "MIT",
+  "files": [
+    "index.js",
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "jest": {
+    "verbose": true,
+    "transform": {
+      "\\.tsx?$": "ts-jest"
+    },
+    "collectCoverage": false,
+    "testMatch": [
+      "**/test/**/*.{test,spec}.{ts,tsx,js,jsx}"
+    ]
+  },
+  "dependencies": {
+    "@babel/runtime": "7.11.2"
+  },
+  "devDependencies": {
+    "@babel/core": "7.11.6",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/plugin-transform-runtime": "7.11.5",
+    "@babel/preset-env": "7.11.5",
+    "@babel/preset-typescript": "^7.10.4",
+    "@rollup/plugin-babel": "5.2.0",
+    "@rollup/plugin-commonjs": "15.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "9.0.0",
+    "@rollup/plugin-replace": "^2.3.3",
+    "@rollup/plugin-typescript": "5.0.2",
+    "@types/invariant": "2.2.34",
+    "@types/jest": "26.0.13",
+    "@typescript-eslint/eslint-plugin": "4.0.1",
+    "@typescript-eslint/parser": "4.0.1",
+    "chalk": "^4.1.0",
+    "eslint": "7.8.1",
+    "eslint-config-alloy": "3.8.0",
+    "husky": "^4.2.5",
+    "jest": "26.4.2",
+    "lint-staged": "10.3.0",
+    "ora": "5.0.0",
+    "rollup": "2.26.10",
+    "rollup-plugin-terser": "7.0.2",
+    "ts-jest": "26.3.0",
+    "typescript": "4.0.2"
+  }
+}
