@@ -18,6 +18,10 @@
     "type": "git",
     "url": "git@github.com:peakchen90/module-transformer.git"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "author": "peakchen90 <1558267774@qq.com>",
   "license": "MIT",
   "files": [
@@ -49,7 +53,9 @@
     ]
   },
   "dependencies": {
-    "@babel/runtime": "7.11.2"
+    "@babel/runtime": "7.11.2",
+    "acorn": "^8.0.4",
+    "acorn-walk": "^8.0.0"
   },
   "devDependencies": {
     "@babel/core": "7.11.6",
