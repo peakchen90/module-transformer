@@ -1,6 +1,7 @@
 {
   "name": "module-transformer",
   "version": "0.0.1-alpha.0",
+  "description": "transform the node module to the dest path",
   "main": "index.js",
   "types": "",
   "sideEffects": false,
