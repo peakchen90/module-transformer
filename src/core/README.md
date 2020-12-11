@@ -18,15 +18,18 @@ const moduleB = `
 transformer.transform({
   context: process.cwd(), // 模块解析的上下文路径
   input: [
-    './public/xxx/a.js',
     {
-      filename: './build/public/xxx/b.js',
-      content: '/* content */'
+      content: '/* content */',
+      output: './build/public/xxx/b.js',
+    },
+    {
+      path: '',
+      output: './public/xxx/b.js',
     }
   ],
   cache: true, // 开发模式启用
   module: {
-    outputDir: './build/public/modules',  // 转换模块的输出目录
+    output: './build/public/modules',  // 转换模块的输出目录
     extensions: ['.js', '.json'],
     include: [ // 包含解析模块的规则
       /^[^.]/,
@@ -42,6 +45,11 @@ transformer.transform({
     }
   },
   plugins: [], // 插件
+  advanced: {
+    parseOptions: {
+      ecmaVersion: 2020
+    }
+  }
 }).then(stat => {
   stat.modules = {
     '/User/abc/src/a.js': {
@@ -104,12 +112,25 @@ transformer.transform({
 
 ## 插件
 ```js
-function plugin(api, options) {
-  api.hook('beforeCompile', async (compiler) => {
-    console.log(compiler);
-  })
-  api.hook('done', async (compiler) => {
-    console.log(compiler);
-  })
+function plugin(options) {
+  return (compiler) => {
+    compiler.hook('beforeCompile', async () => {
+      console.log(compiler);
+    })
+    compiler.hook('done', async (stat) => {
+      console.log(compiler);
+    })
+  }
 }
 ```
+
+```js
+const optiosn = {
+  plugins: [
+    plugin()
+  ]
+}
+```
+
+## TODO
+- sourcemap

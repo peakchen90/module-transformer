@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "definitions": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inputOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "content": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "output": {
+          "$ref": "#/definitions/nonEmptyString"
+        }
+      }
+    },
+    "matchArray": {
+      "type": "array",
+      "allOf": [
+        {
+          "type": "object"
+        },
+        {
+          "$ref": "#/definitions/nonEmptyString"
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "input"
+  ],
+  "properties": {
+    "context": {
+      "$ref": "#/definitions/nonEmptyString"
+    },
+    "input": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/inputOption"
+        },
+        {
+          "type": "array",
+          "allOf": [
+            {
+              "$ref": "#/definitions/inputOption"
+            }
+          ],
+          "minItems": 1
+        }
+      ]
+    },
+    "cache": {
+      "type": "boolean"
+    },
+    "plugins": {
+      "type": "array"
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "output": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "extensions": {
+          "type": "array",
+          "allOf": [
+            {
+              "$ref": "#/definitions/nonEmptyString",
+              "pattern": "^\\."
+            }
+          ]
+        },
+        "include": {
+          "$ref": "#/definitions/matchArray"
+        },
+        "exclude": {
+          "$ref": "#/definitions/matchArray"
+        },
+        "alias": {
+          "type": "object",
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
+        }
+      }
+    },
+    "advanced": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "parseOptions": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

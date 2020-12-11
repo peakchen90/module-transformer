@@ -3,3 +3,5 @@ dist/
 coverage/
 /*.js
 *.d.ts
+src/**/*.js
+test/**/*.js

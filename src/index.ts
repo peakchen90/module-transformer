@@ -1,1 +1,3 @@
-console.log('get started');
+import Compiler from './core';
+
+export default Compiler;

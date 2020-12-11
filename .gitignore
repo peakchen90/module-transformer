@@ -3,6 +3,10 @@ node_modules/
 dist/
 coverage/
 temp/
+src/**/*.js
+src/**/*.js.map
+test/**/*.js
+test/**/*.js.map
 
 # local env files
 .env.local
