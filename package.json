@@ -8,6 +8,7 @@
   "scripts": {
     "start": "tsc -w",
     "build": "tsc",
+    "test": "jest",
     "lint": "eslint {src,test}/**/*.ts --fix"
   },
   "homepage": "https://github.com/peakchen90/module-transformer",

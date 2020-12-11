@@ -4,7 +4,7 @@ import {Module} from './module';
 import {Hook, HookType, Options} from './types';
 import Logger from './Logger';
 import optionsSchema from './options-schema.json';
-import merge from 'lodash/merge';
+import _ from 'lodash';
 
 const ajv = new Ajv({
   allErrors: true,
@@ -52,14 +52,15 @@ export class Compiler {
   }
 
   private loadOptions(options: Options) {
-    if (!validateOptions(options)) {
-      validateOptions.errors?.forEach(val => {
-        if (val.message) {
-          Logger.error(val.message);
-        }
-      });
-      process.exit(1);
-    }
+    // TODO 临时取消校验
+    // if (!validateOptions(options)) {
+    //   validateOptions.errors?.forEach(val => {
+    //     if (val.message) {
+    //       Logger.error(val.message);
+    //     }
+    //   });
+    //   process.exit(1);
+    // }
 
     const defaultOptions: Partial<Options> = {
       context: process.cwd(),
@@ -81,7 +82,7 @@ export class Compiler {
       }
     };
 
-    return merge(defaultOptions, options || {}) as Required<Options>;
+    return _.merge(defaultOptions, options || {}) as Required<Options>;
   }
 
   private loadPlugins() {
