@@ -27,8 +27,7 @@
   "license": "MIT",
   "files": [
     "index.js",
-    "dist",
-    "src",
+    "lib",
     "README.md",
     "LICENSE"
   ],

@@ -1,8 +1,8 @@
-import Compiler from '../src';
+import Compiler from '../lib';
 import * as fs from 'fs';
 import * as path from 'path';
-import emitFile from '../src/plugins/emit-file';
-import clean from '../src/plugins/clean';
+import emitFile from '../lib/plugins/emit-file';
+import clean from '../lib/plugins/clean';
 
 // test('test', () => {
 //   const compiler = new Compiler({
