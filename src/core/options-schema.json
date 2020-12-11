@@ -70,7 +70,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "output": {
+        "outputDir": {
           "$ref": "#/definitions/nonEmptyString"
         },
         "extensions": {

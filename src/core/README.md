@@ -29,8 +29,7 @@ transformer.transform({
   ],
   cache: true, // 开发模式启用
   module: {
-    output: './build/public/modules',  // 转换模块的输出目录
-    extensions: ['.js', '.json'],
+    outputDir: './build/public/modules',  // 转换模块的输出目录
     include: [ // 包含解析模块的规则
       /^[^.]/,
       /^lib/,

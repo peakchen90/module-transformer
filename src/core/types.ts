@@ -7,14 +7,13 @@ export interface CompilerInput {
   output: string
 }
 
-export type CompilerPlugin = (...args: any[]) => (compiler: Compiler) => void
+export type CompilerPlugin = (compiler: Compiler) => void
 
 export interface Options {
   context?: string
   input: CompilerInput | CompilerInput[]
   module?: {
-    output?: string
-    extensions?: string[]
+    outputDir?: string
     include?: (RegExp | string)[]
     exclude?: (RegExp | string)[]
     alias?: Record<string, string>
@@ -26,11 +25,15 @@ export interface Options {
   }
 }
 
+export type RequiredOptions =
+  Required<Options>
+  & { input: CompilerInput[] }
+  & { module: Required<Options['module']> }
+  & { advanced: Required<Options['advanced']> }
+
 export type HookType =
   | 'init'
-  | 'loadedPlugins'
   | 'beforeCompile'
-  | 'parseEntry'
   | 'modules'
   | 'assets'
   | 'done'

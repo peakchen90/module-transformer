@@ -1,10 +1,12 @@
 import Ajv from 'ajv';
 import AjvErrors from 'ajv-errors';
-import {Module} from './module';
-import {Hook, HookType, Options} from './types';
+import _ from 'lodash';
+import Module from './module';
+import {Hook, HookType, Options, RequiredOptions} from './types';
 import Logger from './Logger';
 import optionsSchema from './options-schema.json';
-import _ from 'lodash';
+import Asset from './asset';
+import * as path from 'path';
 
 const ajv = new Ajv({
   allErrors: true,
@@ -13,21 +15,20 @@ const ajv = new Ajv({
 const validateOptions = AjvErrors(ajv).compile(optionsSchema);
 
 export class Compiler {
-  options: Required<Options>;
+  context: string;
+  options: RequiredOptions;
   modules: Map<string, Module>;
-  assets: Record<string, Module>;
+  assets: Map<string, Asset>;
   hooks: Hook[];
-
 
   constructor(options: Options) {
     this.options = this.loadOptions(options);
-    this.modules = new Map<string, Module>();
-    this.assets = {};
+    this.context = this.options.context;
+    this.modules = new Map();
+    this.assets = new Map();
     this.hooks = [];
-    this.applyHook('init');
-
     this.loadPlugins();
-    this.applyHook('loadedPlugins');
+    this.applyHook('init');
   }
 
   onHook(type: HookType, callback: Hook['callback']) {
@@ -39,8 +40,18 @@ export class Compiler {
 
   async run() {
     await this.applyHook('beforeCompile');
-    await this.parse();
+    this.parse();
+    await this.applyHook('modules');
+    this.transformAssets();
+    await this.applyHook('assets');
     await this.applyHook('done');
+  }
+
+  resolvePath(_path: string): string {
+    if (!path.isAbsolute(_path)) {
+      _path = path.join(this.context, _path);
+    }
+    return _path;
   }
 
   private async applyHook(type: HookType, payload?: any): Promise<void> {
@@ -65,8 +76,7 @@ export class Compiler {
     const defaultOptions: Partial<Options> = {
       context: process.cwd(),
       module: {
-        output: 'modules',
-        extensions: ['.js', '.json'],
+        outputDir: 'modules',
         include: [
           /^[^.]/
         ],
@@ -77,12 +87,23 @@ export class Compiler {
       plugins: [],
       advanced: {
         parseOptions: {
-          ecmaVersion: 'latest'
+          ecmaVersion: 'latest',
+          sourceType: 'module',
+          locations: true
         }
       }
     };
 
-    return _.merge(defaultOptions, options || {}) as Required<Options>;
+    const opts = _.merge(defaultOptions, options || {}) as RequiredOptions;
+    if (!Array.isArray(opts.input)) {
+      opts.input = [opts.input];
+    }
+    if (!path.isAbsolute(opts.context)) {
+      opts.context = path.join(process.cwd(), opts.context);
+    }
+    this.context = opts.context;
+    opts.module.outputDir = this.resolvePath(opts.module.outputDir);
+    return opts;
   }
 
   private loadPlugins() {
@@ -92,6 +113,21 @@ export class Compiler {
   }
 
   private parse() {
-    this.applyHook('parseEntry');
+    this.options.input.forEach(item => {
+      const mod = new Module(this, true, item.content);
+      mod.output = item.output;
+      mod.parse();
+    });
+  }
+
+  private transformAssets() {
+    this.modules.forEach((mod) => {
+      const asset = new Asset(this, mod);
+      this.assets.set(asset.filename, asset);
+    });
+
+    this.assets.forEach((asset) => {
+      asset.transform();
+    });
   }
 }
