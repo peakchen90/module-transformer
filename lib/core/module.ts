@@ -5,7 +5,6 @@ import * as fs from 'fs';
 import codeFrame from '@babel/code-frame';
 import builtinModules from 'builtin-modules';
 import {Compiler} from './compiler';
-import {FinalizeOptions} from './types';
 import Asset from './asset';
 import chalk from 'chalk';
 
@@ -25,17 +24,13 @@ let nextId = 0;
 export default class Module {
   readonly id: number;
   readonly compiler: Compiler;
-  readonly options: FinalizeOptions;
   readonly filename: string;
   readonly content: string;
-  entry: boolean;
-  context: string;
-  dependencies: Set<{
-    module: Module
-    replacer: Replacer
-  }>;
-  dependents: Set<Module>;
-  assetModule: boolean;
+  readonly entry: boolean;
+  readonly context: string;
+  readonly dependencies: Set<{ module: Module; replacer: Replacer }>;
+  readonly dependents: Set<Module>;
+  readonly assetModule: boolean;
   ast?: acorn.Node;
   output?: string;
   asset?: Asset;
@@ -43,7 +38,6 @@ export default class Module {
   constructor(compiler: Compiler, opts: ModuleOptions) {
     this.id = ++nextId;
     this.compiler = compiler;
-    this.options = compiler.options;
     this.entry = opts.entry ?? false;
     this.output = opts.output;
     this.filename = opts.filename;
@@ -75,7 +69,8 @@ export default class Module {
 
   parse() {
     try {
-      this.ast = acorn.parse(this.content, this.options.advanced.parseOptions);
+      const {options} = this.compiler;
+      this.ast = acorn.parse(this.content, options.advanced.parseOptions);
     } catch (err) {
       this.compiler.logger.error(`${err.message}, at ${this.filename}`);
       console.log(
@@ -157,7 +152,7 @@ export default class Module {
 
   private handleDepModule(moduleId: string, replacer: Replacer, loc?: { line: string; column: string }) {
     if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
-      moduleId = this.options.alias[moduleId] ?? moduleId;
+      moduleId = this.compiler.options.alias[moduleId] ?? moduleId;
 
       let filename: string;
       try {
@@ -181,6 +176,7 @@ export default class Module {
   }
 
   private checkModuleIdValid(moduleId: string): boolean {
+    const {options} = this.compiler;
     if (!this.entry) { // 非入口文件解析每个依赖的模块
       return true;
     }
@@ -189,14 +185,14 @@ export default class Module {
     if (/^[^.]/.test(moduleId)) {
       valid = true;
     } else {
-      valid = !!(this.options.include.some(item => {
+      valid = !!(options.include.some(item => {
         if (item instanceof RegExp) return item.test(moduleId);
         return item === moduleId;
       }));
     }
     if (!valid) return false;
 
-    valid = !(this.options.exclude.some(item => {
+    valid = !(options.exclude.some(item => {
       if (item instanceof RegExp) return item.test(moduleId);
       return item === moduleId;
     }));

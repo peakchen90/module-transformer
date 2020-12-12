@@ -15,6 +15,7 @@ export interface Options {
   output?: {
     path?: string,
     moduleDir?: string
+    namedModule?: boolean
   }
   include?: (RegExp | string)[]
   exclude?: (RegExp | string)[]

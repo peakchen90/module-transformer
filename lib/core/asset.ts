@@ -1,16 +1,12 @@
 import {Compiler} from './compiler';
 import escodegen from 'escodegen';
-import {FinalizeOptions} from './types';
 import Module from './module';
 import * as path from 'path';
 
 export default class Asset {
   readonly id: number;
   readonly compiler: Compiler;
-  readonly options: FinalizeOptions;
   readonly module: Module;
-  readonly context: string;
-
   filename: string;
   path: string;
   content: string;
@@ -18,8 +14,6 @@ export default class Asset {
   constructor(compiler: Compiler, mod: Module) {
     this.id = mod.id;
     this.compiler = compiler;
-    this.options = compiler.options;
-    this.context = compiler.context;
     this.module = mod;
     this.filename = '';
     this.path = '';
@@ -39,7 +33,7 @@ export default class Asset {
         path.dirname(this.path),
         dep.module.asset?.path as string
       );
-      if (!path.isAbsolute(newModuleId)) {
+      if (!/^\./.test(newModuleId)) {
         newModuleId = `./${newModuleId}`;
       }
       dep.replacer(newModuleId);
@@ -63,14 +57,19 @@ export default class Asset {
   }
 
   private resolveOutputPath() {
+    const {options} = this.compiler;
     if (this.module.entry) {
       this.path = this.module.output as string;
     } else {
-      this.path = path.join(
-        this.options.output.moduleDir,
-        `${this.id}${path.extname(this.module.filename)}`
-      );
+      const {name, ext} = path.parse(this.module.filename);
+      let filename: string;
+      if (options.output.namedModule) {
+        filename = `${name}_${this.id}${ext}`;
+      } else {
+        filename = `${this.id}${ext}`;
+      }
+      this.path = path.join(options.output.moduleDir, filename);
     }
-    this.filename = path.relative(this.context, this.path);
+    this.filename = path.relative(options.output.path, this.path);
   }
 }

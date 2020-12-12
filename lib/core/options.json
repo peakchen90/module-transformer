@@ -89,6 +89,9 @@
         },
         "moduleDir": {
           "type": "string"
+        },
+        "namedModule": {
+          "type": "boolean"
         }
       }
     },

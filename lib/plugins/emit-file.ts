@@ -4,14 +4,18 @@ import Compiler from '../core';
 
 export default function emitFile() {
   function EmitFilePlugin(compiler: Compiler) {
-    compiler.onHook('done', () => {
+    compiler.onHook('done', async () => {
+      const tasks: Promise<any>[] = [];
       compiler.assets.forEach(asset => {
         const dirname = path.dirname(asset.path);
         if (!fse.existsSync(dirname)) {
           fse.mkdirSync(dirname, {recursive: true});
         }
-        fse.writeFileSync(asset.path, asset.content);
+        tasks.push(
+          fse.writeFile(asset.path, asset.content)
+        );
       });
+      await Promise.all(tasks);
     });
   }
 

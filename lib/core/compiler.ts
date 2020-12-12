@@ -9,12 +9,12 @@ import Asset from './asset';
 import * as fs from 'fs';
 
 export class Compiler {
-  context: string;
+  readonly modules: Map<string, Module>;
+  readonly assets: Map<string, Asset>;
+  readonly hooks: Hook[];
   options: FinalizeOptions;
-  modules: Map<string, Module>;
-  assets: Map<string, Asset>;
-  hooks: Hook[];
-  logger: Logger
+  context: string;
+  logger: Logger;
 
   constructor(options: Options) {
     this.logger = new Logger('Compiler');
@@ -83,7 +83,8 @@ export class Compiler {
       const defaultOptions: Partial<Options> = {
         context: process.cwd(),
         output: {
-          moduleDir: '.modules'
+          moduleDir: '.modules',
+          namedModule: false
         },
         include: [],
         exclude: [],
