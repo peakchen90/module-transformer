@@ -1,13 +1,13 @@
 import {Compiler} from './compiler';
 import escodegen from 'escodegen';
-import {RequiredOptions} from './types';
+import {FinalizeOptions} from './types';
 import Module from './module';
 import * as path from 'path';
 
 export default class Asset {
   readonly id: number;
   readonly compiler: Compiler;
-  readonly options: RequiredOptions;
+  readonly options: FinalizeOptions;
   readonly module: Module;
   readonly context: string;
 
@@ -52,10 +52,10 @@ export default class Asset {
 
   private resolveOutputPath() {
     if (this.module.entry) {
-      this.path = this.compiler.resolvePath(this.module.output as string);
+      this.path = this.module.output as string;
     } else {
       this.path = path.join(
-        this.options.module.outputDir,
+        this.options.output.moduleDir,
         `${this.id}${path.extname(this.module.filename)}`
       );
     }

@@ -3,19 +3,29 @@
  */
 import chalk from 'chalk';
 
-const Logger = {
-  info(message: string) {
-    console.log(chalk.cyan(`[info] ${message}`));
-  },
-  success(message: string) {
-    console.log(chalk.green(`[success] ${message}`));
-  },
-  error(message: string) {
-    console.log(chalk.red(`[error] ${message}`));
-  },
-  warn(message: string) {
-    console.warn(chalk.rgb(220, 142, 0)(`[warn] ${message}`));
-  }
-};
+export default class Logger {
+  name: string
 
-export default Logger;
+  constructor(name?: string) {
+    this.name = chalk.bold(name || '[Compiler]');
+  }
+
+  info(message: any) {
+    console.log(chalk.cyan(`${this.name} ${message}`));
+  }
+
+  success(message: any) {
+    console.log(chalk.green(`${this.name} ${message}`));
+  }
+
+  error(message: any) {
+    if (message instanceof Error) {
+      message = message.stack;
+    }
+    console.log(chalk.red(`${this.name} ${message}`));
+  }
+
+  warn(message: any) {
+    console.warn(chalk.rgb(220, 142, 0)(`${this.name} ${message}`));
+  }
+}

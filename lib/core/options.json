@@ -16,10 +16,10 @@
           ],
           "properties": {
             "path": {
-              "$ref": "#/definitions/nonEmptyString"
+              "type": "string"
             },
             "output": {
-              "$ref": "#/definitions/nonEmptyString"
+              "type": "string"
             }
           }
         },
@@ -32,10 +32,10 @@
           ],
           "properties": {
             "content": {
-              "$ref": "#/definitions/nonEmptyString"
+              "type": "string"
             },
             "output": {
-              "$ref": "#/definitions/nonEmptyString"
+              "type": "string"
             }
           }
         }
@@ -62,7 +62,7 @@
   ],
   "properties": {
     "context": {
-      "$ref": "#/definitions/nonEmptyString"
+      "type": "string"
     },
     "input": {
       "oneOf": [
@@ -78,6 +78,32 @@
         }
       ]
     },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "moduleDir": {
+          "type": "string"
+        }
+      }
+    },
+    "include": {
+      "$ref": "#/definitions/matchArray"
+    },
+    "exclude": {
+      "$ref": "#/definitions/matchArray"
+    },
+    "alias": {
+      "type": "object",
+      "patternProperties": {
+        ".+": {
+          "$ref": "#/definitions/nonEmptyString"
+        }
+      }
+    },
     "cache": {
       "type": "boolean"
     },
@@ -85,29 +111,6 @@
       "type": "array",
       "items": {
         "instanceof": "Function"
-      }
-    },
-    "module": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "outputDir": {
-          "$ref": "#/definitions/nonEmptyString"
-        },
-        "include": {
-          "$ref": "#/definitions/matchArray"
-        },
-        "exclude": {
-          "$ref": "#/definitions/matchArray"
-        },
-        "alias": {
-          "type": "object",
-          "patternProperties": {
-            ".+": {
-              "$ref": "#/definitions/nonEmptyString"
-            }
-          }
-        }
       }
     },
     "advanced": {

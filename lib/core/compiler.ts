@@ -2,17 +2,19 @@ import {validate} from 'schema-utils';
 import _ from 'lodash';
 import * as path from 'path';
 import Module from './module';
-import {Hook, HookType, Options, RequiredOptions} from './types';
+import {Hook, HookType, Options, FinalizeOptions, FinalizeInput} from './types';
 import Logger from './Logger';
 import optionsSchema from './options.json';
 import Asset from './asset';
+import * as fs from 'fs';
 
 export class Compiler {
   context: string;
-  options: RequiredOptions;
+  options: FinalizeOptions;
   modules: Map<string, Module>;
   assets: Map<string, Asset>;
   hooks: Hook[];
+  logger: Logger
 
   constructor(options: Options) {
     this.options = this.loadOptions(options);
@@ -20,8 +22,22 @@ export class Compiler {
     this.modules = new Map();
     this.assets = new Map();
     this.hooks = [];
+    this.logger = new Logger();
     this.loadPlugins();
     this.applyHook('init');
+  }
+
+  async run() {
+    try {
+      await this.resolveEntries();
+      await this.parseModules();
+      await this.transformAssets();
+      await this.applyHook('done');
+    } catch (err) {
+      await this.applyHook('error', err);
+      this.logger.error(err);
+      process.exit(1);
+    }
   }
 
   onHook(type: HookType, callback: Hook['callback']) {
@@ -31,23 +47,15 @@ export class Compiler {
     });
   }
 
-  async run() {
-    await this.applyHook('beforeCompile');
-    this.parse();
-    await this.applyHook('modules');
-    this.transformAssets();
-    await this.applyHook('assets');
-    await this.applyHook('done');
-  }
-
-  resolvePath(_path: string): string {
-    if (!path.isAbsolute(_path)) {
-      _path = path.join(this.context, _path);
+  resolvePath(...args: string[]): string {
+    let [first, ...remaining] = args;
+    if (!path.isAbsolute(first)) {
+      first = path.join(this.context, first);
     }
-    return _path;
+    return path.join(first, ...remaining);
   }
 
-  private async applyHook(type: HookType, payload?: any): Promise<void> {
+  async applyHook(type: HookType, payload?: any): Promise<void> {
     for (const hook of this.hooks) {
       if (hook.type === type) {
         await hook.callback(this, payload);
@@ -57,24 +65,20 @@ export class Compiler {
 
   private loadOptions(options: Options) {
     try {
-      validate(optionsSchema as any, options, {
-        name: 'ModuleTransformer'
-      });
+      validate(optionsSchema as any, options, {name: 'ModuleTransformer'});
     } catch (err) {
-      Logger.error(err);
+      this.logger.error(err);
       process.exit(1);
     }
 
     const defaultOptions: Partial<Options> = {
       context: process.cwd(),
-      module: {
-        outputDir: '.npm_modules',
-        include: [
-          /^[^.]/
-        ],
-        exclude: [],
-        alias: {}
+      output: {
+        moduleDir: '.modules'
       },
+      include: [],
+      exclude: [],
+      alias: {},
       cache: true,
       plugins: [],
       advanced: {
@@ -85,16 +89,46 @@ export class Compiler {
       }
     };
 
-    const opts = _.merge(defaultOptions, options || {}) as RequiredOptions;
-    if (!Array.isArray(opts.input)) {
-      opts.input = [opts.input];
-    }
+    const opts = _.merge(defaultOptions, options || {}) as FinalizeOptions;
     if (!path.isAbsolute(opts.context)) {
       opts.context = path.join(process.cwd(), opts.context);
     }
     this.context = opts.context;
-    opts.module.outputDir = this.resolvePath(opts.module.outputDir);
+    opts.output.path = this.resolvePath(opts.output.path ?? 'dist');
+    if (!path.isAbsolute(opts.output.moduleDir)) {
+      opts.output.moduleDir = path.join(opts.output.path, opts.output.moduleDir);
+    }
+    opts.input = this.getFinalizeInput(opts);
     return opts;
+  }
+
+  private getFinalizeInput(options: Options): FinalizeInput[] {
+    let input = options.input;
+    if (!Array.isArray(input)) {
+      input = [input];
+    }
+
+    let nextId = 0;
+    return input.map(item => {
+      let filename = '', content = '', output = '';
+      if (typeof item === 'string') {
+        filename = this.resolvePath(item);
+        content = fs.readFileSync(filename).toString();
+        output = item;
+      } else if (item.filename) {
+        filename = this.resolvePath(item.filename);
+        content = fs.readFileSync(filename).toString();
+        output = item.output ?? item.filename;
+      } else {
+        filename = `ghost://entry@${++nextId}`;
+        content = item.content as string;
+        output = item.output as string;
+      }
+      if (!path.isAbsolute(output)) {
+        output = path.join(options.output?.path as string, output);
+      }
+      return {filename, content, output};
+    });
   }
 
   private loadPlugins() {
@@ -103,22 +137,36 @@ export class Compiler {
     });
   }
 
-  private parse() {
-    this.options.input.forEach(item => {
-      const mod = new Module(this, true, item.content);
-      mod.output = item.output;
-      mod.parse();
-    });
+  private async resolveEntries() {
+    this.options.input.forEach((item) =>
+      new Module(this, {
+        entry: true,
+        ghost: /^ghost:\/\//.test(item.filename),
+        output: item.output,
+        content: item.content,
+        filename: item.filename,
+      })
+    );
+    await this.applyHook('entry');
   }
 
-  private transformAssets() {
+  private async parseModules() {
+    await this.applyHook('beforeCompile');
+    const entries = [...this.modules.values()];
+    entries.forEach(mod => {
+      mod.parse();
+    });
+    await this.applyHook('modules');
+  }
+
+  private async transformAssets() {
     this.modules.forEach((mod) => {
       const asset = new Asset(this, mod);
       this.assets.set(asset.filename, asset);
     });
-
     this.assets.forEach((asset) => {
       asset.transform();
     });
+    await this.applyHook('assets');
   }
 }

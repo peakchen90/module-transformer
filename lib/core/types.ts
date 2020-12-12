@@ -1,43 +1,54 @@
 import acorn from 'acorn';
 import {Compiler} from './compiler';
 
-export interface CompilerInput {
-  path?: string
+export type InputOption = {
+  filename?: string
   content?: string
-  output: string
-}
+  output?: string
+} | string
 
-export type CompilerPlugin = (compiler: Compiler) => void
+export type PluginOption = (compiler: Compiler) => void
 
 export interface Options {
   context?: string
-  input: CompilerInput | CompilerInput[]
-  module?: {
-    outputDir?: string
-    include?: (RegExp | string)[]
-    exclude?: (RegExp | string)[]
-    alias?: Record<string, string>
+  input: InputOption | InputOption[]
+  output?: {
+    path?: string,
+    moduleDir?: string
   }
+  include?: (RegExp | string)[]
+  exclude?: (RegExp | string)[]
+  alias?: Record<string, string>
   cache?: boolean
-  plugins?: CompilerPlugin[]
+  plugins?: PluginOption[]
   advanced?: {
     parseOptions?: acorn.Options
   }
 }
 
-export type RequiredOptions =
-  Required<Options>
-  & { input: CompilerInput[] }
-  & { module: Required<Options['module']> }
-  & { advanced: Required<Options['advanced']> }
+export interface FinalizeInput {
+  filename: string
+  content: string
+  output: string
+}
+
+export type RequiredOptions = Required<Options>
+
+export type FinalizeOptions =
+  Omit<RequiredOptions, 'input' | 'output' | 'advanced'>
+  & { input: FinalizeInput[] }
+  & { output: Required<RequiredOptions['output']> }
+  & { advanced: Required<RequiredOptions['advanced']> }
 
 export type HookType =
   | 'init'
+  | 'entry'
   | 'beforeCompile'
   | 'modules'
   | 'assets'
   | 'done'
-  | 'fail'
+  | 'error'
+  | 'log'
 
 export interface Hook {
   type: HookType

@@ -13,7 +13,7 @@ import {transform, plugins} from '../lib';
 // });
 
 transform({
-  context: 'dist',
+  context: '',
   input: [
     {
       content: `
@@ -32,12 +32,9 @@ transform({
       output: 'abc.js',
     },
   ],
-  module: {
-    outputDir: '.npm_modules',
-    include: [],
-    exclude: [],
-    alias: {}
-  },
+  include: [],
+  exclude: [],
+  alias: {},
   plugins: [
     plugins.emitFile(),
     plugins.clean(),
