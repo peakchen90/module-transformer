@@ -68,7 +68,7 @@ export class Compiler {
     const defaultOptions: Partial<Options> = {
       context: process.cwd(),
       module: {
-        outputDir: 'modules',
+        outputDir: '.npm_modules',
         include: [
           /^[^.]/
         ],

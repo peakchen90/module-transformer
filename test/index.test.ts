@@ -1,6 +1,4 @@
-import Compiler from '../lib';
-import emitFile from '../lib/plugins/emit-file';
-import clean from '../lib/plugins/clean';
+import {transform, plugins} from '../lib';
 
 // test('test', () => {
 //   const compiler = new Compiler({
@@ -14,9 +12,8 @@ import clean from '../lib/plugins/clean';
 //   compiler.run();
 // });
 
-
-const compiler = new Compiler({
-  context: 'test/dist',
+transform({
+  context: 'dist',
   input: [
     {
       content: `
@@ -32,12 +29,18 @@ const compiler = new Compiler({
       const chalk = require('chalk')
       console.log(chalk.red.bold('====> ABC <===='))
       `,
-      output: 'abc.js'
+      output: 'abc.js',
     },
   ],
+  module: {
+    outputDir: '.npm_modules',
+    include: [],
+    exclude: [],
+    alias: {}
+  },
   plugins: [
-    emitFile(),
-    clean()
-  ]
+    plugins.emitFile(),
+    plugins.clean(),
+  ],
+  advanced: {}
 });
-compiler.run();

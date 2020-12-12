@@ -39,7 +39,7 @@ export default class Asset {
         path.dirname(this.path),
         dep.module.asset?.path as string
       );
-      if (!/^\./.test(newModuleId)) {
+      if (!path.isAbsolute(newModuleId)) {
         newModuleId = `./${newModuleId}`;
       }
       dep.replacer(newModuleId);

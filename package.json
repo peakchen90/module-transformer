@@ -1,15 +1,17 @@
 {
   "name": "module-transformer",
   "version": "0.0.1-alpha.0",
-  "description": "transform the node module to the dest path",
-  "main": "index.js",
-  "types": "",
+  "description": "transform the npm modules to the dest path",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "sideEffects": false,
   "scripts": {
     "start": "tsc -w",
     "build": "tsc",
     "test": "jest",
-    "lint": "eslint {lib,test}/**/*.ts --fix"
+    "lint": "eslint {lib,test}/**/*.ts --fix",
+    "prepublishOnly": "npm run build",
+    "postpublish": "node -e ''"
   },
   "homepage": "https://github.com/peakchen90/module-transformer",
   "bugs": {
@@ -26,7 +28,6 @@
   "author": "peakchen90 <1558267774@qq.com>",
   "license": "MIT",
   "files": [
-    "index.js",
     "lib",
     "README.md",
     "LICENSE"
