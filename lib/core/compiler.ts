@@ -118,6 +118,7 @@ export class Compiler {
 
   private getFinalizeInput(options: Options): FinalizeInput[] {
     let input = options.input;
+    const outputRoot = options.output?.path as string;
     if (!Array.isArray(input)) {
       input = [input];
     }
@@ -128,7 +129,11 @@ export class Compiler {
       if (typeof item === 'string') {
         filename = this.resolvePath(item);
         content = fs.readFileSync(filename).toString();
-        output = item;
+        if (path.isAbsolute(item)) {
+          output = path.relative(this.context, item);
+        } else {
+          output = item;
+        }
       } else if (item.filename) {
         filename = this.resolvePath(item.filename);
         content = fs.readFileSync(filename).toString();
@@ -139,7 +144,7 @@ export class Compiler {
         output = item.output as string;
       }
       if (!path.isAbsolute(output)) {
-        output = path.join(options.output?.path as string, output);
+        output = path.join(outputRoot, output);
       }
       return {filename, content, output};
     });
