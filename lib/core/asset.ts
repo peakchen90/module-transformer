@@ -50,7 +50,15 @@ export default class Asset {
     if (this.module.assetModule) {
       this.content = this.module.content;
     } else {
-      this.content = escodegen.generate(this.module.ast);
+      this.content = escodegen.generate(this.module.ast, {
+        comment: true,
+        format: {
+          indent: {
+            style: '  ',
+            adjustMultilineComment: true
+          }
+        }
+      });
     }
   }
 

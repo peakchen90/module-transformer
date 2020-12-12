@@ -74,10 +74,7 @@ export default class Module {
 
   parse() {
     try {
-      this.ast = acorn.parse(
-        this.content,
-        this.options.advanced.parseOptions
-      );
+      this.ast = acorn.parse(this.content, this.options.advanced.parseOptions);
     } catch (err) {
       this.compiler.logger.error(`${err.message}, at ${this.filename}`);
       console.log(
@@ -155,8 +152,7 @@ export default class Module {
   }
 
   private handleDepModule(moduleId: string, replacer: Replacer) {
-    if (this.checkModuleIdValid(moduleId)) {
-      if (builtinModules.includes(moduleId)) return;
+    if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
       const filename = require.resolve(moduleId, {
         paths: [this.context]
       });

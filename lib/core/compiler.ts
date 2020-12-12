@@ -128,7 +128,7 @@ export class Compiler {
         content = fs.readFileSync(filename).toString();
         output = item.output ?? item.filename;
       } else {
-        filename = `ghost://entry_${++nextId}`;
+        filename = `ghost://entry/${++nextId}.js`;
         content = item.content as string;
         output = item.output as string;
       }
