@@ -47,7 +47,11 @@ export default class Asset {
   }
 
   private transformCode() {
-    this.content = escodegen.generate(this.module.ast);
+    if (this.module.assetModule) {
+      this.content = this.module.content;
+    } else {
+      this.content = escodegen.generate(this.module.ast);
+    }
   }
 
   private resolveOutputPath() {

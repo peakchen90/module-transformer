@@ -3,7 +3,7 @@ import fse from 'fs-extra';
 import Compiler from '../core';
 
 export default function emitFile() {
-  return (compiler: Compiler) => {
+  function EmitFilePlugin(compiler: Compiler) {
     compiler.onHook('done', () => {
       compiler.assets.forEach(asset => {
         const dirname = path.dirname(asset.path);
@@ -13,5 +13,7 @@ export default function emitFile() {
         fse.writeFileSync(asset.path, asset.content);
       });
     });
-  };
+  }
+
+  return EmitFilePlugin;
 }

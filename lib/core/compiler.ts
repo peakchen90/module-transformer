@@ -2,7 +2,7 @@ import {validate} from 'schema-utils';
 import _ from 'lodash';
 import * as path from 'path';
 import Module from './module';
-import {Hook, HookType, Options, FinalizeOptions, FinalizeInput} from './types';
+import {Hook, HookType, Options, FinalizeOptions, FinalizeInput, PluginOption} from './types';
 import Logger from './Logger';
 import optionsSchema from './options.json';
 import Asset from './asset';
@@ -17,7 +17,7 @@ export class Compiler {
   logger: Logger
 
   constructor(options: Options) {
-    this.logger = new Logger();
+    this.logger = new Logger('Compiler');
     this.modules = new Map();
     this.assets = new Map();
     this.hooks = [];
@@ -60,6 +60,16 @@ export class Compiler {
         await hook.callback(this, payload);
       }
     }
+  }
+
+  mountPlugin(plugin: PluginOption) {
+    plugin(this);
+  }
+
+  exit(err: any, code = 1): never {
+    this.applyHook('error', err);
+    this.logger.error(err);
+    process.exit(code);
   }
 
   private loadOptions(options: Options) {
@@ -118,7 +128,7 @@ export class Compiler {
         content = fs.readFileSync(filename).toString();
         output = item.output ?? item.filename;
       } else {
-        filename = `ghost://entry@${++nextId}`;
+        filename = `ghost://entry_${++nextId}`;
         content = item.content as string;
         output = item.output as string;
       }
@@ -132,7 +142,7 @@ export class Compiler {
   private loadPlugins() {
     try {
       this.options.plugins.forEach(plugin => {
-        plugin(this);
+        this.mountPlugin(plugin);
       });
     } catch (err) {
       this.exit(err);
@@ -170,11 +180,5 @@ export class Compiler {
       asset.transform();
     });
     await this.applyHook('assets');
-  }
-
-  private exit(err: any, code = 1): never {
-    this.applyHook('error', err);
-    this.logger.error(err);
-    process.exit(code);
   }
 }

@@ -1,17 +1,19 @@
 import * as acorn from 'acorn';
 import * as acornWalk from 'acorn-walk';
 import * as path from 'path';
+import * as fs from 'fs';
+import codeFrame from '@babel/code-frame';
 import builtinModules from 'builtin-modules';
 import {Compiler} from './compiler';
 import {FinalizeOptions} from './types';
 import Asset from './asset';
-import * as fs from 'fs';
 
 interface ModuleOptions {
   entry?: boolean
   ghost?: boolean
   output?: string
   content?: string
+  asAsset?: string
   filename: string
 }
 
@@ -32,6 +34,7 @@ export default class Module {
     replacer: Replacer
   }>;
   dependents: Set<Module>;
+  assetModule: boolean;
   ast?: acorn.Node;
   output?: string;
   asset?: Asset;
@@ -45,6 +48,7 @@ export default class Module {
     this.filename = opts.filename;
     this.dependencies = new Set();
     this.dependents = new Set();
+    this.assetModule = !/\.m?js$/i.test(this.filename);
 
     if (opts.ghost) {
       this.context = compiler.context;
@@ -69,12 +73,20 @@ export default class Module {
   }
 
   parse() {
-    this.ast = acorn.parse(
-      this.content,
-      this.options.advanced.parseOptions || {
-        ecmaVersion: 'latest'
-      }
-    );
+    try {
+      this.ast = acorn.parse(
+        this.content,
+        this.options.advanced.parseOptions
+      );
+    } catch (err) {
+      this.compiler.logger.error(`${err.message}, at ${this.filename}`);
+      console.log(
+        codeFrame(this.content, err.loc.line, err.loc.column, {
+          highlightCode: true
+        })
+      );
+      this.compiler.exit(err);
+    }
     this.findDeps();
   }
 
@@ -98,19 +110,19 @@ export default class Module {
           node.source.raw = val;
         });
       },
-      ImportDeclaration(node: any) {
+      ImportDeclaration: (node: any) => {
         this.handleDepModule(node.source.value, (val: string) => {
           node.source.value = val;
           node.source.raw = val;
         });
       },
-      ExportAllDeclaration(node: any) {
+      ExportAllDeclaration: (node: any) => {
         this.handleDepModule(node.source.value, (val: string) => {
           node.source.value = val;
           node.source.raw = val;
         });
       },
-      ExportNamedDeclaration(node: any) {
+      ExportNamedDeclaration: (node: any) => {
         this.handleDepModule(node.source.value, (val: string) => {
           node.source.value = val;
           node.source.raw = val;
@@ -153,7 +165,7 @@ export default class Module {
       let mod = modules.get(filename);
       if (!mod) {
         mod = new Module(this.compiler, {filename});
-        if (/\.m?js/i.test(filename)) {
+        if (!mod.assetModule) {
           mod.parse();
         }
       }

@@ -6,8 +6,8 @@ import chalk from 'chalk';
 export default class Logger {
   name: string
 
-  constructor(name?: string) {
-    this.name = chalk.bold(name || '[Compiler]');
+  constructor(name: string) {
+    this.name = chalk.bold(`[${name}]`);
   }
 
   info(message: any) {
