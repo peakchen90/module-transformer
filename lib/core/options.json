@@ -8,6 +8,9 @@
     "inputOption": {
       "oneOf": [
         {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        {
           "type": "object",
           "additionalProperties": false,
           "required": [
@@ -65,9 +68,6 @@
     },
     "input": {
       "oneOf": [
-        {
-          "$ref": "#/definitions/nonEmptyString"
-        },
         {
           "$ref": "#/definitions/inputOption"
         },

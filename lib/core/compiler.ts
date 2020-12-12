@@ -17,12 +17,13 @@ export class Compiler {
   logger: Logger
 
   constructor(options: Options) {
-    this.options = this.loadOptions(options);
-    this.context = this.options.context;
+    this.logger = new Logger();
     this.modules = new Map();
     this.assets = new Map();
     this.hooks = [];
-    this.logger = new Logger();
+
+    this.options = this.loadOptions(options);
+    this.context = this.options.context;
     this.loadPlugins();
     this.applyHook('init');
   }
@@ -34,9 +35,7 @@ export class Compiler {
       await this.transformAssets();
       await this.applyHook('done');
     } catch (err) {
-      await this.applyHook('error', err);
-      this.logger.error(err);
-      process.exit(1);
+      this.exit(err);
     }
   }
 
@@ -66,40 +65,39 @@ export class Compiler {
   private loadOptions(options: Options) {
     try {
       validate(optionsSchema as any, options, {name: 'ModuleTransformer'});
-    } catch (err) {
-      this.logger.error(err);
-      process.exit(1);
-    }
 
-    const defaultOptions: Partial<Options> = {
-      context: process.cwd(),
-      output: {
-        moduleDir: '.modules'
-      },
-      include: [],
-      exclude: [],
-      alias: {},
-      cache: true,
-      plugins: [],
-      advanced: {
-        parseOptions: {
-          ecmaVersion: 'latest',
-          sourceType: 'module'
+      const defaultOptions: Partial<Options> = {
+        context: process.cwd(),
+        output: {
+          moduleDir: '.modules'
+        },
+        include: [],
+        exclude: [],
+        alias: {},
+        cache: true,
+        plugins: [],
+        advanced: {
+          parseOptions: {
+            ecmaVersion: 'latest',
+            sourceType: 'module'
+          }
         }
-      }
-    };
+      };
 
-    const opts = _.merge(defaultOptions, options || {}) as FinalizeOptions;
-    if (!path.isAbsolute(opts.context)) {
-      opts.context = path.join(process.cwd(), opts.context);
+      const opts = _.merge(defaultOptions, options || {}) as FinalizeOptions;
+      if (!path.isAbsolute(opts.context)) {
+        opts.context = path.join(process.cwd(), opts.context);
+      }
+      this.context = opts.context;
+      opts.output.path = this.resolvePath(opts.output.path ?? 'dist');
+      if (!path.isAbsolute(opts.output.moduleDir)) {
+        opts.output.moduleDir = path.join(opts.output.path, opts.output.moduleDir);
+      }
+      opts.input = this.getFinalizeInput(opts);
+      return opts;
+    } catch (err) {
+      this.exit(err);
     }
-    this.context = opts.context;
-    opts.output.path = this.resolvePath(opts.output.path ?? 'dist');
-    if (!path.isAbsolute(opts.output.moduleDir)) {
-      opts.output.moduleDir = path.join(opts.output.path, opts.output.moduleDir);
-    }
-    opts.input = this.getFinalizeInput(opts);
-    return opts;
   }
 
   private getFinalizeInput(options: Options): FinalizeInput[] {
@@ -132,9 +130,13 @@ export class Compiler {
   }
 
   private loadPlugins() {
-    this.options.plugins?.forEach(plugin => {
-      plugin(this);
-    });
+    try {
+      this.options.plugins.forEach(plugin => {
+        plugin(this);
+      });
+    } catch (err) {
+      this.exit(err);
+    }
   }
 
   private async resolveEntries() {
@@ -168,5 +170,11 @@ export class Compiler {
       asset.transform();
     });
     await this.applyHook('assets');
+  }
+
+  private exit(err: any, code = 1): never {
+    this.applyHook('error', err);
+    this.logger.error(err);
+    process.exit(code);
   }
 }
