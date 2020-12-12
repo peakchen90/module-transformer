@@ -1,18 +1,11 @@
-import Ajv from 'ajv';
-import AjvErrors from 'ajv-errors';
+import {validate} from 'schema-utils';
 import _ from 'lodash';
+import * as path from 'path';
 import Module from './module';
 import {Hook, HookType, Options, RequiredOptions} from './types';
 import Logger from './Logger';
-import optionsSchema from './options-schema.json';
+import optionsSchema from './options.json';
 import Asset from './asset';
-import * as path from 'path';
-
-const ajv = new Ajv({
-  allErrors: true,
-  jsonPointers: true
-});
-const validateOptions = AjvErrors(ajv).compile(optionsSchema);
 
 export class Compiler {
   context: string;
@@ -63,15 +56,14 @@ export class Compiler {
   }
 
   private loadOptions(options: Options) {
-    // TODO 临时取消校验
-    // if (!validateOptions(options)) {
-    //   validateOptions.errors?.forEach(val => {
-    //     if (val.message) {
-    //       Logger.error(val.message);
-    //     }
-    //   });
-    //   process.exit(1);
-    // }
+    try {
+      validate(optionsSchema as any, options, {
+        name: 'ModuleTransformer'
+      });
+    } catch (err) {
+      Logger.error(err);
+      process.exit(1);
+    }
 
     const defaultOptions: Partial<Options> = {
       context: process.cwd(),
@@ -88,8 +80,7 @@ export class Compiler {
       advanced: {
         parseOptions: {
           ecmaVersion: 'latest',
-          sourceType: 'module',
-          locations: true
+          sourceType: 'module'
         }
       }
     };

@@ -6,33 +6,53 @@
       "minLength": 1
     },
     "inputOption": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "output"
-      ],
-      "properties": {
-        "path": {
-          "$ref": "#/definitions/nonEmptyString"
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "output"
+          ],
+          "properties": {
+            "path": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "output": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
         },
-        "content": {
-          "$ref": "#/definitions/nonEmptyString"
-        },
-        "output": {
-          "$ref": "#/definitions/nonEmptyString"
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "content",
+            "output"
+          ],
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "output": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          }
         }
-      }
+      ]
     },
     "matchArray": {
       "type": "array",
-      "allOf": [
-        {
-          "type": "object"
-        },
-        {
-          "$ref": "#/definitions/nonEmptyString"
-        }
-      ]
+      "items": {
+        "oneOf": [
+          {
+            "instanceof": "RegExp"
+          },
+          {
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        ]
+      }
     }
   },
   "type": "object",
@@ -51,12 +71,10 @@
         },
         {
           "type": "array",
-          "allOf": [
-            {
-              "$ref": "#/definitions/inputOption"
-            }
-          ],
-          "minItems": 1
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/inputOption"
+          }
         }
       ]
     },
@@ -64,7 +82,10 @@
       "type": "boolean"
     },
     "plugins": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "instanceof": "Function"
+      }
     },
     "module": {
       "type": "object",
@@ -72,15 +93,6 @@
       "properties": {
         "outputDir": {
           "$ref": "#/definitions/nonEmptyString"
-        },
-        "extensions": {
-          "type": "array",
-          "allOf": [
-            {
-              "type": "string",
-              "pattern": "^\\."
-            }
-          ]
         },
         "include": {
           "$ref": "#/definitions/matchArray"
@@ -91,7 +103,7 @@
         "alias": {
           "type": "object",
           "patternProperties": {
-            ".*": {
+            ".+": {
               "$ref": "#/definitions/nonEmptyString"
             }
           }
