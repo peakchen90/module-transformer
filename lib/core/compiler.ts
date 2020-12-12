@@ -31,12 +31,19 @@ export class Compiler {
     this.applyHook('init');
   }
 
-  async run() {
+  async run(): Promise<{
+    modules: Map<string, Module>;
+    assets: Map<string, Asset>;
+  }> {
     try {
       await this.resolveEntries();
       await this.parseModules();
       await this.transformAssets();
       await this.applyHook('done');
+      return {
+        modules: this.modules,
+        assets: this.assets,
+      };
     } catch (err) {
       this.exit(err);
     }
