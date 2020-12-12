@@ -1,6 +1,4 @@
 import Compiler from '../lib';
-import * as fs from 'fs';
-import * as path from 'path';
 import emitFile from '../lib/plugins/emit-file';
 import clean from '../lib/plugins/clean';
 
@@ -32,10 +30,7 @@ const compiler = new Compiler({
     {
       content: `
       const chalk = require('chalk')
-      const _ = require('lodash')
-
-      console.log(chalk.red.bold('abc !!!'))
-      console.log(_.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]))
+      console.log(chalk.red.bold('====> ABC <===='))
       `,
       output: 'abc.js'
     },
