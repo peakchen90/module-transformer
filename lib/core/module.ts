@@ -128,6 +128,25 @@ export default class Module {
     });
   }
 
+  private handleDepModule(moduleId: string, replacer: Replacer) {
+    if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
+      moduleId = this.options.alias[moduleId] ?? moduleId;
+      const filename = require.resolve(moduleId, {
+        paths: [this.context]
+      });
+
+      const modules = this.compiler.modules;
+      let mod = modules.get(filename);
+      if (!mod) {
+        mod = new Module(this.compiler, {filename});
+        if (!mod.assetModule) {
+          mod.parse();
+        }
+      }
+      this.addDep(mod, replacer);
+    }
+  }
+
   private checkModuleIdValid(moduleId: string): boolean {
     if (!this.entry) { // 非入口文件解析每个依赖的模块
       return true;
@@ -149,23 +168,5 @@ export default class Module {
       return item === moduleId;
     }));
     return valid;
-  }
-
-  private handleDepModule(moduleId: string, replacer: Replacer) {
-    if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
-      const filename = require.resolve(moduleId, {
-        paths: [this.context]
-      });
-
-      const modules = this.compiler.modules;
-      let mod = modules.get(filename);
-      if (!mod) {
-        mod = new Module(this.compiler, {filename});
-        if (!mod.assetModule) {
-          mod.parse();
-        }
-      }
-      this.addDep(mod, replacer);
-    }
   }
 }

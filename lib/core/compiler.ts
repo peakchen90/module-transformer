@@ -74,7 +74,11 @@ export class Compiler {
 
   private loadOptions(options: Options) {
     try {
-      validate(optionsSchema as any, options, {name: 'ModuleTransformer'});
+      validate(
+        optionsSchema as any,
+        options,
+        {name: 'ModuleTransformer'}
+      );
 
       const defaultOptions: Partial<Options> = {
         context: process.cwd(),
