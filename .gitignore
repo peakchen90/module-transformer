@@ -3,8 +3,8 @@ node_modules/
 dist/
 coverage/
 temp/
-src/**/*.js
-src/**/*.js.map
+lib/**/*.js
+lib/**/*.js.map
 test/**/*.js
 test/**/*.js.map
 
