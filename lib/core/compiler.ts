@@ -113,6 +113,7 @@ export class Compiler {
         opts.output.moduleDir = path.join(opts.output.path, opts.output.moduleDir);
       }
       opts.input = this.getFinalizeInput(opts);
+      opts.cache = false; // TODO 禁用缓存
       return opts;
     } catch (err) {
       this.exit(err);
