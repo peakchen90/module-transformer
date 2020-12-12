@@ -7,6 +7,7 @@ import builtinModules from 'builtin-modules';
 import {Compiler} from './compiler';
 import {FinalizeOptions} from './types';
 import Asset from './asset';
+import chalk from 'chalk';
 
 interface ModuleOptions {
   entry?: boolean
@@ -94,46 +95,78 @@ export default class Module {
           node.callee.type === 'Identifier'
           && node.callee.name === 'require'
           && node.arguments[0]?.type === 'Literal'
+          && typeof node.arguments[0]?.value === 'string'
         ) {
-          this.handleDepModule(node.arguments[0].value, (val: string) => {
-            node.arguments[0].value = val;
-            node.arguments[0].raw = val;
-          });
+          this.handleDepModule(
+            node.arguments[0].value,
+            (val: string) => {
+              node.arguments[0].value = val;
+              node.arguments[0].raw = val;
+            },
+            node.arguments[0].loc?.start
+          );
         }
       },
       ImportExpression: (node: any) => {
-        this.handleDepModule(node.source.value, (val: string) => {
-          node.source.value = val;
-          node.source.raw = val;
-        });
+        if (
+          node.source.type === 'Literal'
+          && typeof node.source.value === 'string'
+        ) {
+          this.handleDepModule(
+            node.source.value,
+            (val: string) => {
+              node.source.value = val;
+              node.source.raw = val;
+            },
+            node.source.loc?.start
+          );
+        }
       },
       ImportDeclaration: (node: any) => {
-        this.handleDepModule(node.source.value, (val: string) => {
-          node.source.value = val;
-          node.source.raw = val;
-        });
+        this.handleDepModule(
+          node.source.value,
+          (val: string) => {
+            node.source.value = val;
+            node.source.raw = val;
+          },
+          node.source.loc?.start
+        );
       },
       ExportAllDeclaration: (node: any) => {
-        this.handleDepModule(node.source.value, (val: string) => {
-          node.source.value = val;
-          node.source.raw = val;
-        });
+        this.handleDepModule(
+          node.source.value,
+          (val: string) => {
+            node.source.value = val;
+            node.source.raw = val;
+          },
+          node.source.loc?.start
+        );
       },
       ExportNamedDeclaration: (node: any) => {
-        this.handleDepModule(node.source.value, (val: string) => {
-          node.source.value = val;
-          node.source.raw = val;
-        });
+        this.handleDepModule(
+          node.source.value,
+          (val: string) => {
+            node.source.value = val;
+            node.source.raw = val;
+          },
+          node.source.loc?.start
+        );
       }
     });
   }
 
-  private handleDepModule(moduleId: string, replacer: Replacer) {
+  private handleDepModule(moduleId: string, replacer: Replacer, loc?: { line: string; column: string }) {
     if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
       moduleId = this.options.alias[moduleId] ?? moduleId;
-      const filename = require.resolve(moduleId, {
-        paths: [this.context]
-      });
+
+      let filename: string;
+      try {
+        filename = require.resolve(moduleId, {paths: [this.context]});
+      } catch (err) {
+        const location = loc ? ` (${loc.line}:${loc.column})` : '';
+        this.compiler.logger.error(`Cannot find module '${moduleId}' at ${chalk.underline(this.filename + location)}`);
+        this.compiler.exit(err.stack);
+      }
 
       const modules = this.compiler.modules;
       let mod = modules.get(filename);
