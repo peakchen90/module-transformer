@@ -11,11 +11,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "path",
-            "output"
+            "filename"
           ],
           "properties": {
-            "path": {
+            "filename": {
               "type": "string"
             },
             "output": {
@@ -66,6 +65,9 @@
     },
     "input": {
       "oneOf": [
+        {
+          "$ref": "#/definitions/nonEmptyString"
+        },
         {
           "$ref": "#/definitions/inputOption"
         },
