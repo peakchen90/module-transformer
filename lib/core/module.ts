@@ -27,6 +27,7 @@ export default class Module {
   readonly filename: string;
   readonly content: string;
   readonly entry: boolean;
+  readonly ghost: boolean;
   readonly context: string;
   readonly dependencies: Set<{ module: Module; replacer: Replacer }>;
   readonly dependents: Set<Module>;
@@ -39,13 +40,14 @@ export default class Module {
     this.id = ++nextId;
     this.compiler = compiler;
     this.entry = opts.entry ?? false;
+    this.ghost = opts.ghost ?? false;
     this.output = opts.output;
     this.filename = opts.filename;
     this.dependencies = new Set();
     this.dependents = new Set();
     this.assetModule = !/\.m?js$/i.test(this.filename);
 
-    if (opts.ghost) {
+    if (this.ghost) {
       this.context = compiler.context;
       this.content = opts.content as string;
     } else {
@@ -69,7 +71,12 @@ export default class Module {
 
   parse() {
     try {
-      const {options} = this.compiler;
+      const {options, cache} = this.compiler;
+      const _cache = cache.getCache(this.filename, this.content);
+      if (options.cache && _cache != null) {
+        return;
+      }
+
       this.ast = acorn.parse(this.content, options.advanced.parseOptions);
     } catch (err) {
       this.compiler.logger.error(`${err.message}, at ${this.filename}`);

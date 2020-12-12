@@ -7,6 +7,7 @@ import Logger from './Logger';
 import optionsSchema from './options.json';
 import Asset from './asset';
 import * as fs from 'fs';
+import Cache from './cache';
 
 export class Compiler {
   readonly modules: Map<string, Module>;
@@ -15,6 +16,7 @@ export class Compiler {
   options: FinalizeOptions;
   context: string;
   logger: Logger;
+  cache: Cache;
 
   constructor(options: Options) {
     this.logger = new Logger('Compiler');
@@ -24,6 +26,7 @@ export class Compiler {
 
     this.options = this.loadOptions(options);
     this.context = this.options.context;
+    this.cache = new Cache(this);
     this.loadPlugins();
     this.applyHook('init');
   }

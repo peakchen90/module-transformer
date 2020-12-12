@@ -583,6 +583,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/hash-sum@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.npm.taobao.org/@types/hash-sum/download/@types/hash-sum-1.0.0.tgz?cache=0&sync_timestamp=1605055270093&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fhash-sum%2Fdownload%2F%40types%2Fhash-sum-1.0.0.tgz#838f4e8627887d42b162d05f3d96ca636c2bc504"
+  integrity sha1-g49OhieIfUKxYtBfPZbKY2wrxQQ=
+
 "@types/invariant@2.2.34":
   version "2.2.34"
   resolved "https://registry.npm.taobao.org/@types/invariant/download/@types/invariant-2.2.34.tgz?cache=0&sync_timestamp=1605053958593&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Finvariant%2Fdownload%2F%40types%2Finvariant-2.2.34.tgz#05e4f79f465c2007884374d4795452f995720bbe"
@@ -2103,6 +2108,11 @@ has@^1.0.3:
   integrity sha1-ci18v8H2qoJB8W3YFOAR4fQeh5Y=
   dependencies:
     function-bind "^1.1.1"
+
+hash-sum@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npm.taobao.org/hash-sum/download/hash-sum-2.0.0.tgz#81d01bb5de8ea4a214ad5d6ead1b523460b0b45a"
+  integrity sha1-gdAbtd6OpKIUrV1urRtSNGCwtFo=
 
 hosted-git-info@^2.1.4:
   version "2.8.8"

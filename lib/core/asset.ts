@@ -23,11 +23,18 @@ export default class Asset {
   }
 
   transform() {
-    this.transformAST();
+    const {options, cache} = this.compiler;
+    const _cache = cache.getCache(this.module.filename, this.module.content);
+    if (options.cache && _cache != null) {
+      this.content = _cache.content;
+      return;
+    }
+
+    this.replaceModuleId();
     this.transformCode();
   }
 
-  private transformAST() {
+  private replaceModuleId() {
     this.module.dependencies.forEach(dep => {
       let newModuleId = path.relative(
         path.dirname(this.path),
@@ -53,6 +60,13 @@ export default class Asset {
           }
         }
       });
+
+      const {options, cache} = this.compiler;
+      if (options.cache) {
+        if (!this.module.ghost) {
+          cache.set(this.module.filename, this);
+        }
+      }
     }
   }
 
