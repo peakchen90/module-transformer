@@ -125,13 +125,9 @@ export default class Asset {
         for (let {module} of this.module.dependencies.values()) {
           deps.push(module.filename);
         }
-        let filename = this.module.filename;
+        const filename = cache.getModuleCacheFilename(this.module);
         const sourceContent = this.module.content;
         const content = this.content;
-        // 入口模块使用输出路径作为文件名生成缓存key
-        if (this.module.entry) {
-          filename = this.module.output as string;
-        }
         cache.set({filename, sourceContent, deps, content});
       }
     }

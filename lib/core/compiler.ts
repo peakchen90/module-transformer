@@ -153,7 +153,10 @@ export class Compiler {
       opts.input = this.getFinalizeInput(opts);
       // 开启缓存时使用路径hash值命名
       if (opts.cache) {
-        opts.output.namedModule = 'hash';
+        if(opts.output.namedModule !== 'hash') {
+          opts.output.namedModule = 'hash';
+          this.logger.warn('When the `options.cache` is enabled, `options.output.namedModule` can only be "hash"');
+        }
       }
       return opts;
     } catch (err) {

@@ -145,11 +145,20 @@ export default class Cache {
    * @param mod
    */
   getModuleCache(mod: Module) {
-    let filename = mod.filename;
-    if (mod.entry) {
-      filename = mod.output as string;
-    }
+    const filename = this.getModuleCacheFilename(mod);
     return this.getCacheInfo(filename, mod.content);
+  }
+
+  /**
+   * 返回模块用于生成缓存的filename
+   * @param mod
+   */
+  getModuleCacheFilename(mod: Module) {
+    const {options} = this.compiler;
+    if (mod.entry) {
+      return mod.output + options.output.moduleDir;
+    }
+    return mod.filename;
   }
 
   /**
