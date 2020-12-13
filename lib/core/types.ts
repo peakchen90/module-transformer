@@ -31,9 +31,9 @@ export interface Options {
    * 输出配置
    */
   output?: {
-    path?: string,
-    moduleDir?: string
-    namedModule?: boolean
+    path?: string, // 输出目录
+    moduleDir?: string // 解析模块输出的目录
+    namedModule?: 'id' | 'hash' | 'named' // 模块命名方式（默认: "id"）
   }
   /**
    * 包含编译的模块（默认: 非相对路径模块）
@@ -48,7 +48,7 @@ export interface Options {
    */
   alias?: Record<string, string>
   /**
-   * 是否启用缓存（默认开启）
+   * 是否启用缓存（默认开启），开启缓存时 namedModule 只能设置为 "hash" 模式
    */
   cache?: boolean
   /**

@@ -1,5 +1,6 @@
 import * as path from 'path';
 import escodegen from 'escodegen';
+import hashSum from 'hash-sum';
 import {Compiler} from './compiler';
 import Module from './module';
 import {getUniqueName} from './util';
@@ -28,6 +29,7 @@ export default class Asset {
    */
   transform() {
     const {cache} = this.compiler;
+    // 校验缓存，如果没有失效跳过转换，直接读取缓存内容
     if (cache.enable) {
       const cacheInfo = cache.getModuleCache(this.module);
       if (cacheInfo) {
@@ -45,31 +47,39 @@ export default class Asset {
    * @private
    */
   private resolveOutput() {
+    const {options} = this.compiler;
+
+    // 获取输出目录的相对路径
     const getFilename = (_path: string): string => {
       return path.relative(options.output.path, _path);
     };
 
-    const {options} = this.compiler;
-    if (this.module.entry) { // 入口文件
+    // 入口模块使用配置的输出文件名
+    if (this.module.entry) {
       this.path = this.module.output as string;
       this.filename = getFilename(this.path);
       return;
     }
 
     const {name, ext} = path.parse(this.module.filename);
-    if (!options.output.namedModule) {
-      this.path = path.join(options.output.moduleDir, `${this.id}${ext}`);
-      this.filename = getFilename(this.path);
-      return;
+    let outputPath = '';
+    let filename = '';
+
+    if (options.output.namedModule === 'hash') { // 使用文件路径 hash 值命名模块
+      outputPath = path.join(
+        options.output.moduleDir,
+        `${hashSum(this.module.filename)}${ext}`
+      );
+    } else if (options.output.namedModule === 'named') { // 使用命名模块
+      getUniqueName(this.module.shortName || name, (val) => {
+        outputPath = path.join(options.output.moduleDir, `${val}${ext}`);
+        filename = getFilename(outputPath);
+        return !this.compiler.assets.has(filename);
+      });
+    } else { // 使用id命名
+      outputPath = path.join(options.output.moduleDir, `${this.id}${ext}`);
     }
 
-    // 命名模块
-    let outputPath = '', filename = '';
-    getUniqueName(this.module.shortName || name, (val) => {
-      outputPath = path.join(options.output.moduleDir, `${val}${ext}`);
-      filename = getFilename(outputPath);
-      return !this.compiler.assets.has(filename);
-    });
     this.path = outputPath;
     this.filename = getFilename(this.path);
   }
@@ -118,6 +128,7 @@ export default class Asset {
         let filename = this.module.filename;
         const sourceContent = this.module.content;
         const content = this.content;
+        // 入口模块使用输出路径作为文件名生成缓存key
         if (this.module.entry) {
           filename = this.module.output as string;
         }

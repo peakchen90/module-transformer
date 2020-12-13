@@ -125,7 +125,7 @@ export class Compiler {
         context: process.cwd(),
         output: {
           moduleDir: '.modules',
-          namedModule: false
+          namedModule: 'id'
         },
         include: [],
         exclude: [],
@@ -153,7 +153,7 @@ export class Compiler {
       opts.input = this.getFinalizeInput(opts);
       // 开启缓存时使用路径hash值命名
       if (opts.cache) {
-        opts.output.namedModule = false;
+        opts.output.namedModule = 'hash';
       }
       return opts;
     } catch (err) {

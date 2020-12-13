@@ -94,18 +94,13 @@ export default class Cache {
     this.caches = new Map();
     this.cacheDir = getTempDir('.transformer_cache');
 
-    const {context, output, cache} = compiler.options;
+    const {cache} = compiler.options;
     if (cache && !fse.existsSync(this.cacheDir)) {
       fse.mkdirSync(this.cacheDir, {recursive: true});
     }
 
     this.enable = cache;
-    this.base = `
-      ${context}
-      ${output.path}
-      ${output.moduleDir}
-      ${output.namedModule}
-    `;
+    this.base = '';
   }
 
   /**

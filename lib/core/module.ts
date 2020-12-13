@@ -103,8 +103,12 @@ export default class Module {
     });
     mod.dependents.add(this);
 
-    // 命名模块
-    if (this.compiler.options.output.namedModule && opts.sourceId && !mod.shortName) {
+    // 使用命名模块
+    if (
+      this.compiler.options.output.namedModule === 'named'
+      && opts.sourceId
+      && !mod.shortName
+    ) {
       let name = path.parse(opts.sourceId).name;
       if (/^\.{1,2}\//.test(opts.sourceId)) {
         name = this.rootName ? `${this.rootName}_${name}` : name;

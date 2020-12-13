@@ -91,7 +91,12 @@
           "type": "string"
         },
         "namedModule": {
-          "type": "boolean"
+          "type": "string",
+          "enum": [
+            "id",
+            "hash",
+            "named"
+          ]
         }
       }
     },
