@@ -30,7 +30,7 @@ export function getLineColumn(source: string, pos: number): { line: number; colu
  */
 export function printCodeFrame(source: string, lineOrPos: number, column?: number) {
   let line = lineOrPos;
-  if (!column) {
+  if (column == null) {
     const loc = getLineColumn(source, lineOrPos);
     line = loc.line;
     column = loc.column;
