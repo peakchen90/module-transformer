@@ -256,10 +256,11 @@ export default class Module {
    * @private
    */
   private handleDepModule(moduleId: string, replacer: Replacer, loc?: { line: string; column: string }) {
-    if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
-      const sourceId = moduleId;
+    const sourceId = moduleId;
+    if(this.entry) {
       moduleId = this.compiler.options.alias[moduleId] ?? moduleId;
-
+    }
+    if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
       let filename: string;
       try {
         filename = require.resolve(moduleId, {paths: [this.context]});

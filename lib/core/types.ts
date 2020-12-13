@@ -59,7 +59,7 @@ export interface Options {
    * 高级选项
    */
   advanced?: {
-    parseOptions?: acorn.Options // acorn 解析选项
+    parseOptions?: Partial<acorn.Options> // acorn 解析选项
   }
 }
 
@@ -78,10 +78,15 @@ export type RequiredOptions = Required<Options>
  * 最终的编译器选项
  */
 export type FinalizeOptions =
-  Omit<RequiredOptions, 'input' | 'output' | 'advanced'>
-  & { input: FinalizeInput[] }
-  & { output: Required<RequiredOptions['output']> }
-  & { advanced: Required<RequiredOptions['advanced']> }
+  Omit<RequiredOptions, 'input' | 'output' | 'advanced'> &
+  { input: FinalizeInput[] } &
+  { output: Required<RequiredOptions['output']> } &
+  {
+    advanced: Omit<Required<RequiredOptions['advanced']>, 'parseOptions'> &
+      {
+        parseOptions: acorn.Options
+      }
+  }
 
 /**
  * Hook 类型

@@ -83,11 +83,11 @@ export class CacheData {
 }
 
 export default class Cache {
-  compiler: Compiler
-  base: string
-  enable: boolean
+  compiler: Compiler;
+  base: string;
+  enable: boolean;
   cacheDir: string;
-  caches: Map<string, CacheData | null>
+  caches: Map<string, CacheData | null>;
 
   constructor(compiler: Compiler) {
     this.compiler = compiler;
@@ -156,7 +156,14 @@ export default class Cache {
   getModuleCacheFilename(mod: Module) {
     const {options} = this.compiler;
     if (mod.entry) {
-      return mod.output + options.output.moduleDir;
+      return JSON.stringify({
+        a: mod.output,
+        b: options.context,
+        c: options.output,
+        d: options.include.map(String),
+        e: options.exclude.map(String),
+        f: options.alias
+      });
     }
     return mod.filename;
   }

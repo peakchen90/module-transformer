@@ -1,6 +1,6 @@
-const transformer = require('../lib');
-const path = require('path');
-const { performance } = require('perf_hooks');
+import transformer from '../lib/index';
+import path from 'path';
+import {performance} from 'perf_hooks';
 
 const mark = performance.now();
 
@@ -14,22 +14,21 @@ transformer.transform({
   ],
   output: {
     moduleDir: 'npm',
-    namedModule: 'hash',
+    namedModule: 'named',
   },
-  cache: true,
-  include: [
-
-  ],
-  exclude: [
-
-  ],
+  cache: false,
+  include: [],
+  exclude: [],
+  alias: {
+    '@@@': 'chalk'
+  },
   plugins: [
     transformer.plugins.clean(),
     transformer.plugins.emitFile(),
   ],
   advanced: {
     parseOptions: {
-      locations: true
+      ecmaVersion: 2020
     }
   }
 }).then(() => {
