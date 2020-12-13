@@ -2,6 +2,9 @@ import path from 'path';
 import fse from 'fs-extra';
 import Compiler from '../core';
 
+/**
+ * 根据资源信息生成文件
+ */
 export default function emitFile() {
   function EmitFilePlugin(compiler: Compiler) {
     compiler.onHook('done', async () => {

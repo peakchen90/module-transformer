@@ -3,6 +3,11 @@ import * as path from 'path';
 import * as os from 'os';
 import fse from 'fs-extra';
 
+/**
+ * 根据位置返回行、列信息
+ * @param source
+ * @param pos
+ */
 export function getLineColumn(source: string, pos: number): { line: number; column: number } {
   let line = 1, column = 0;
   for (let i = 0; i <= pos; i++) {
@@ -17,6 +22,12 @@ export function getLineColumn(source: string, pos: number): { line: number; colu
   return {line, column};
 }
 
+/**
+ * 打印代码并标记位置
+ * @param source
+ * @param lineOrPos
+ * @param column
+ */
 export function printCodeFrame(source: string, lineOrPos: number, column?: number) {
   let line = lineOrPos;
   if (!column) {

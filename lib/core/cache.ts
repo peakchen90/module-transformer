@@ -6,12 +6,18 @@ import {Compiler} from './compiler';
 import Module from './module';
 import {getTempDir} from './util';
 
+/**
+ * 对外暴露使用的缓存接口
+ */
 export interface CacheInfo {
   hash: string
   deps: string[]
   content: string
 }
 
+/**
+ * 缓存数据类
+ */
 export class CacheData {
   info: CacheInfo;
 
@@ -38,6 +44,10 @@ export class CacheData {
     return str;
   }
 
+  /**
+   * 从文件中恢复缓存
+   * @param filename
+   */
   static restoreFromFile(filename: string): CacheData | null {
     try {
       if (fse.existsSync(filename)) {
@@ -50,6 +60,10 @@ export class CacheData {
     }
   }
 
+  /**
+   * 读取字符串恢复缓存
+   * @param str
+   */
   static restore(str: string): CacheData | null {
     try {
       let index1 = str.indexOf('\n');
@@ -94,10 +108,18 @@ export default class Cache {
     `;
   }
 
+  /**
+   * 创建缓存key
+   * @param filename
+   */
   createKey(filename: string) {
     return hashSum(this.base + filename);
   }
 
+  /**
+   * 设置缓存
+   * @param config
+   */
   set(config: {
     filename: string;
     sourceContent: string
@@ -115,11 +137,18 @@ export default class Cache {
     });
   }
 
+  /**
+   * 清空缓存
+   */
   clear() {
     this.caches.clear();
     del.sync(path.join(this.cacheDir, '*'), {force: true});
   }
 
+  /**
+   * 返回模块的缓存信息
+   * @param mod
+   */
   getModuleCache(mod: Module) {
     let filename = mod.filename;
     if (mod.entry) {
@@ -128,6 +157,11 @@ export default class Cache {
     return this.getCacheInfo(filename, mod.content);
   }
 
+  /**
+   * 返回缓存信息
+   * @param filename
+   * @param content
+   */
   getCacheInfo(filename: string, content?: string): CacheInfo | null {
     try {
       const key = this.createKey(filename);
@@ -144,6 +178,11 @@ export default class Cache {
     }
   }
 
+  /**
+   * 校验缓存
+   * @param keyHash
+   * @param contentHash
+   */
   validate(keyHash: string, contentHash: string): boolean {
     let cache = this.caches.get(keyHash);
     if (!cache) {

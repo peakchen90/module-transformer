@@ -1,6 +1,9 @@
 import del from 'del';
 import Compiler from '../core';
 
+/**
+ * 清除构建成果插件
+ */
 export default function clean() {
   function CleanPlugin(compiler: Compiler) {
     compiler.onHook('init', () => {

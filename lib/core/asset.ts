@@ -23,6 +23,9 @@ export default class Asset {
     this.resolveOutput();
   }
 
+  /**
+   * 转换文件生成内容
+   */
   transform() {
     const {cache} = this.compiler;
     if (cache.enable) {
@@ -37,13 +40,17 @@ export default class Asset {
     this.generateAssetContent();
   }
 
+  /**
+   * 解析资源输出信息
+   * @private
+   */
   private resolveOutput() {
     const getFilename = (_path: string): string => {
       return path.relative(options.output.path, _path);
     };
 
     const {options} = this.compiler;
-    if (this.module.entry) {
+    if (this.module.entry) { // 入口文件
       this.path = this.module.output as string;
       this.filename = getFilename(this.path);
       return;
@@ -56,6 +63,7 @@ export default class Asset {
       return;
     }
 
+    // 命名模块
     let outputPath = '', filename = '';
     getUniqueName(this.module.shortName || name, (val) => {
       outputPath = path.join(options.output.moduleDir, `${val}${ext}`);
@@ -66,6 +74,10 @@ export default class Asset {
     this.filename = getFilename(this.path);
   }
 
+  /**
+   * 替换模块id
+   * @private
+   */
   private replaceModuleId() {
     this.module.dependencies.forEach(dep => {
       let newModuleId = path.relative(
@@ -81,6 +93,10 @@ export default class Asset {
     });
   }
 
+  /**
+   * 生成代码
+   * @private
+   */
   private generateAssetContent() {
     if (this.module.assetModule) {
       this.content = this.module.content;
@@ -92,6 +108,7 @@ export default class Asset {
         }
       });
 
+      // 更新缓存
       const {cache} = this.compiler;
       if (cache.enable) {
         const deps: string[] = [];

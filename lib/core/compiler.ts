@@ -31,6 +31,9 @@ export class Compiler {
     this.applyHook('init');
   }
 
+  /**
+   * 开始编译
+   */
   async run(): Promise<{
     modules: Map<string, Module>;
     assets: Map<string, Asset>;
@@ -49,6 +52,11 @@ export class Compiler {
     }
   }
 
+  /**
+   * 注册钩子函数
+   * @param type
+   * @param callback
+   */
   onHook(type: HookType, callback: Hook['callback']) {
     this.hooks.push({
       type,
@@ -56,6 +64,10 @@ export class Compiler {
     });
   }
 
+  /**
+   * 根据context返回决定路径
+   * @param args
+   */
   resolvePath(...args: string[]): string {
     let [first, ...remaining] = args;
     if (!path.isAbsolute(first)) {
@@ -64,6 +76,11 @@ export class Compiler {
     return path.join(first, ...remaining);
   }
 
+  /**
+   * 应用一个钩子
+   * @param type
+   * @param payload
+   */
   async applyHook(type: HookType, payload?: any): Promise<void> {
     for (const hook of this.hooks) {
       if (hook.type === type) {
@@ -72,16 +89,30 @@ export class Compiler {
     }
   }
 
+  /**
+   * 挂载插件
+   * @param plugin
+   */
   mountPlugin(plugin: PluginOption) {
     plugin(this);
   }
 
+  /**
+   * 退出进程
+   * @param err
+   * @param code
+   */
   exit(err: any, code = 1): never {
     this.applyHook('error', err);
     this.logger.error(err);
     process.exit(code);
   }
 
+  /**
+   * 加载编译器选项
+   * @param options
+   * @private
+   */
   private loadOptions(options: Options) {
     try {
       validate(
@@ -120,13 +151,21 @@ export class Compiler {
         opts.output.moduleDir = path.join(opts.output.path, opts.output.moduleDir);
       }
       opts.input = this.getFinalizeInput(opts);
-      // opts.cache = false; // TODO 禁用缓存
+      // 开启缓存时使用路径hash值命名
+      if (opts.cache) {
+        opts.output.namedModule = false;
+      }
       return opts;
     } catch (err) {
       this.exit(err);
     }
   }
 
+  /**
+   * 返回最终的入口信息
+   * @param options
+   * @private
+   */
   private getFinalizeInput(options: Options): FinalizeInput[] {
     let input = options.input;
     const outputRoot = options.output?.path as string;
@@ -161,6 +200,10 @@ export class Compiler {
     });
   }
 
+  /**
+   * 加载配置的插件
+   * @private
+   */
   private loadPlugins() {
     try {
       this.options.plugins.forEach(plugin => {
@@ -171,6 +214,10 @@ export class Compiler {
     }
   }
 
+  /**
+   * 解析入口
+   * @private
+   */
   private async resolveEntries() {
     this.options.input.forEach((item) =>
       new Module(this, {
@@ -184,15 +231,25 @@ export class Compiler {
     await this.applyHook('entry');
   }
 
+  /**
+   * 解析模块
+   * @private
+   */
   private async parseModules() {
     await this.applyHook('beforeCompile');
     const entries = [...this.modules.values()];
     entries.forEach(mod => {
-      mod.parse();
+      if (!mod.ast) {
+        mod.parse();
+      }
     });
     await this.applyHook('modules');
   }
 
+  /**
+   * 生产资源文件信息
+   * @private
+   */
   private async generateAssets() {
     this.modules.forEach((mod) => {
       const asset = new Asset(this, mod);

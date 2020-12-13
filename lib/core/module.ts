@@ -9,6 +9,9 @@ import Asset from './asset';
 import {CacheInfo} from './cache';
 import {printCodeFrame} from './util';
 
+/**
+ * 模块构造函数选项
+ */
 interface ModuleOptions {
   entry?: boolean
   ghost?: boolean
@@ -18,8 +21,14 @@ interface ModuleOptions {
   filename: string
 }
 
+/**
+ * 替换 moduleId 方法签名
+ */
 type Replacer = (val: string) => void;
 
+/**
+ * 依赖信息
+ */
 interface Dependency {
   module: Module
   cache: boolean
@@ -27,25 +36,29 @@ interface Dependency {
   replacer?: Replacer
 }
 
+// 模块id
 let nextId = 0;
 
+/**
+ * 模块
+ */
 export default class Module {
-  readonly id: number;
-  readonly compiler: Compiler;
-  readonly entry: boolean;
-  readonly ghost: boolean;
-  readonly filename: string;
-  readonly content: string;
-  readonly output?: string;
-  readonly context: string;
-  readonly dependencies: Set<Dependency>;
-  readonly dependents: Set<Module>;
-  readonly assetModule: boolean;
-  ast?: acorn.Node;
-  asset?: Asset;
-  shortName?: string;
-  rootName?: string;
-  private _resolveCacheDeps?: boolean;
+  readonly id: number; // 模块id
+  readonly compiler: Compiler; // compiler实例
+  readonly entry: boolean; // 是否入口模块
+  readonly ghost: boolean; // 是否ghost入口模块（入口只配置了 content 就是一个虚拟的 ghost 模块）
+  readonly filename: string; // 模块路径
+  readonly content: string; // 模块文件内容
+  readonly output?: string; // 输出路径（仅入口模块有）
+  readonly context: string; // 解析模块内的依赖需要根据的路径
+  readonly dependencies: Set<Dependency>; // 所有的依赖信息
+  readonly dependents: Set<Module>; // 被依赖的模块
+  readonly assetModule: boolean; // 是否是作为一个资源模块（非 JS 文件）
+  ast?: acorn.Node; // AST 对象
+  asset?: Asset; // 绑定资源文件实例（后期生成资源文件时绑定）
+  shortName?: string; // 短名称（用户命名模块）
+  rootName?: string; // 根名称（一般是npm包名）
+  private _resolveCacheDeps?: boolean; // 是否解析过缓存依赖（解决循环引用）
 
   constructor(compiler: Compiler, opts: ModuleOptions) {
     this.id = ++nextId;
@@ -72,6 +85,11 @@ export default class Module {
     }
   }
 
+  /**
+   * 添加一个模块作为依赖
+   * @param mod
+   * @param opts
+   */
   addDep(mod: Module, opts: {
     cache: boolean,
     sourceId?: string,
@@ -106,8 +124,12 @@ export default class Module {
     }
   }
 
+  /**
+   * 解析模块
+   */
   parse() {
     const {options, cache} = this.compiler;
+    // 验证缓存
     if (cache.enable) {
       const cacheInfo = cache.getModuleCache(this);
       if (cacheInfo) {
@@ -126,6 +148,12 @@ export default class Module {
     this.findDeps();
   }
 
+  /**
+   * 递归处理缓存模块的依赖
+   * @param parent
+   * @param deps
+   * @private
+   */
   private handleCacheDeps(parent: Module, deps: CacheInfo['deps']) {
     const {cache, modules} = this.compiler;
     parent._resolveCacheDeps = true;
@@ -145,6 +173,10 @@ export default class Module {
     });
   }
 
+  /**
+   * 查找模块的依赖
+   * @private
+   */
   private findDeps() {
     acornWalk.simple(this.ast as acorn.Node, {
       CallExpression: (node: any) => {
@@ -212,6 +244,13 @@ export default class Module {
     });
   }
 
+  /**
+   * 处理依赖模块
+   * @param moduleId
+   * @param replacer
+   * @param loc
+   * @private
+   */
   private handleDepModule(moduleId: string, replacer: Replacer, loc?: { line: string; column: string }) {
     if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
       const sourceId = moduleId;
@@ -238,6 +277,11 @@ export default class Module {
     }
   }
 
+  /**
+   * 校验 moduleId 是否有效
+   * @param moduleId
+   * @private
+   */
   private checkModuleIdValid(moduleId: string): boolean {
     const {options} = this.compiler;
     if (!this.entry) { // 非入口文件解析每个依赖的模块
@@ -245,9 +289,10 @@ export default class Module {
     }
 
     let valid: boolean;
-    if (/^[^.]/.test(moduleId)) {
+    if (!/^\.{1,2}\//.test(moduleId)) {
       valid = true;
     } else {
+      // 应用 include 配置
       valid = !!(options.include.some(item => {
         if (item instanceof RegExp) return item.test(moduleId);
         return item === moduleId;
@@ -255,6 +300,7 @@ export default class Module {
     }
     if (!valid) return false;
 
+    // 应用 exclude 配置
     valid = !(options.exclude.some(item => {
       if (item instanceof RegExp) return item.test(moduleId);
       return item === moduleId;
