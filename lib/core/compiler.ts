@@ -38,7 +38,7 @@ export class Compiler {
     try {
       await this.resolveEntries();
       await this.parseModules();
-      await this.transformAssets();
+      await this.generateAssets();
       await this.applyHook('done');
       return {
         modules: this.modules,
@@ -120,7 +120,7 @@ export class Compiler {
         opts.output.moduleDir = path.join(opts.output.path, opts.output.moduleDir);
       }
       opts.input = this.getFinalizeInput(opts);
-      opts.cache = false; // TODO 禁用缓存
+      // opts.cache = false; // TODO 禁用缓存
       return opts;
     } catch (err) {
       this.exit(err);
@@ -193,7 +193,7 @@ export class Compiler {
     await this.applyHook('modules');
   }
 
-  private async transformAssets() {
+  private async generateAssets() {
     this.modules.forEach((mod) => {
       const asset = new Asset(this, mod);
       this.assets.set(asset.filename, asset);

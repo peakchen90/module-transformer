@@ -4,9 +4,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import codeFrame from '@babel/code-frame';
 import builtinModules from 'builtin-modules';
+import chalk from 'chalk';
 import {Compiler} from './compiler';
 import Asset from './asset';
-import chalk from 'chalk';
+import {CacheInfo} from './cache';
 
 interface ModuleOptions {
   entry?: boolean
@@ -19,6 +20,13 @@ interface ModuleOptions {
 
 type Replacer = (val: string) => void;
 
+interface Dependency {
+  module: Module
+  cache: boolean
+  replacer?: Replacer
+  cacheInfo?: CacheInfo
+}
+
 let nextId = 0;
 
 export default class Module {
@@ -29,7 +37,7 @@ export default class Module {
   readonly entry: boolean;
   readonly ghost: boolean;
   readonly context: string;
-  readonly dependencies: Set<{ module: Module; replacer: Replacer }>;
+  readonly dependencies: Set<Dependency>;
   readonly dependents: Set<Module>;
   readonly assetModule: boolean;
   ast?: acorn.Node;
@@ -64,19 +72,32 @@ export default class Module {
   addDep(mod: Module, replacer: Replacer) {
     this.dependencies.add({
       module: mod,
+      cache: false,
       replacer
     });
     mod.dependents.add(this);
   }
 
+  addCacheDep(mod: Module, cacheInfo?: CacheInfo) {
+    this.dependencies.add({
+      module: mod,
+      cache: true,
+      cacheInfo
+    });
+    mod.dependents.add(this);
+  }
+
   parse() {
-    try {
-      const {options, cache} = this.compiler;
-      const _cache = cache.getCache(this.filename, this.content);
-      if (options.cache && _cache != null) {
+    const {options, cache} = this.compiler;
+    if (cache.enable) {
+      const cacheInfo = cache.getCacheInfo(this.filename, this.content);
+      if (cacheInfo) {
+        this.handleCacheDeps(cacheInfo.deps);
         return;
       }
+    }
 
+    try {
       this.ast = acorn.parse(this.content, options.advanced.parseOptions);
     } catch (err) {
       this.compiler.logger.error(`${err.message}, at ${this.filename}`);
@@ -88,6 +109,19 @@ export default class Module {
       this.compiler.exit(err);
     }
     this.findDeps();
+  }
+
+  private handleCacheDeps(deps: CacheInfo['deps']) {
+    const {cache, modules} = this.compiler;
+    deps.forEach(filename => {
+      const cacheInfo = cache.getCacheInfo(filename);
+      let mod = modules.get(filename);
+      if (!mod) {
+        mod = new Module(this.compiler, {filename});
+        if (!cacheInfo && !mod.assetModule) mod.parse();
+      }
+      this.addCacheDep(mod, cacheInfo ?? undefined);
+    });
   }
 
   private findDeps() {
@@ -174,9 +208,7 @@ export default class Module {
       let mod = modules.get(filename);
       if (!mod) {
         mod = new Module(this.compiler, {filename});
-        if (!mod.assetModule) {
-          mod.parse();
-        }
+        if (!mod.assetModule) mod.parse();
       }
       this.addDep(mod, replacer);
     }

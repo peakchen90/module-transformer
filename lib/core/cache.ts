@@ -5,16 +5,73 @@ import os from 'os';
 import {Compiler} from './compiler';
 import Asset from './asset';
 
-export type CacheData = {
-  depsInfo: Array<{ p: string, k: string }>
+export interface CacheInfo {
+  hash: string
+  deps: string[]
   content: string
-} | null
+}
+
+export class CacheData {
+  info: CacheInfo;
+
+  constructor(info: CacheInfo) {
+    this.info = info;
+  }
+
+  get hash() {
+    return this.info.hash;
+  }
+
+  get deps() {
+    return this.info.deps;
+  }
+
+  get content() {
+    return this.info.content;
+  }
+
+  toString(): string {
+    let str = this.info.hash;
+    str += `\n${JSON.stringify(this.info.deps)}`;
+    str += `\n\n${this.info.content}`;
+    return str;
+  }
+
+  static restoreFromFile(filename: string): CacheData | null {
+    try {
+      if (fse.existsSync(filename)) {
+        const str = fse.readFileSync(filename).toString();
+        return CacheData.restore(str);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static restore(str: string): CacheData | null {
+    try {
+      let index1 = str.indexOf('\n');
+      let index2 = str.indexOf('\n\n', index1 + 1);
+      if (index1 === -1 || index2 === -1) {
+        return null;
+      }
+      const hash = str.slice(0, index1);
+      const deps = JSON.parse(str.slice(index1 + 1, index2));
+      const content = str.slice(index2 + 2);
+      return new CacheData({hash, content, deps});
+    } catch (e) {
+      return null;
+    }
+  }
+}
 
 export default class Cache {
   compiler: Compiler
   base: string
+  enable: boolean
   cacheDir: string;
-  caches: Map<string, CacheData>
+  caches: Map<string, CacheData | null>
 
   constructor(compiler: Compiler) {
     this.compiler = compiler;
@@ -25,6 +82,8 @@ export default class Cache {
     if (cache && !fse.existsSync(this.cacheDir)) {
       fse.mkdirSync(this.cacheDir, {recursive: true});
     }
+
+    this.enable = cache;
     this.base = `
       ${context}
       ${output.path}
@@ -33,25 +92,26 @@ export default class Cache {
     `;
   }
 
-  createCacheName(filename: string, content: string) {
-    return `${hashSum(this.base + filename)}__${hashSum(content)}`;
+  createKey(filename: string) {
+    return hashSum(this.base + filename);
   }
 
   set(filename: string, asset: Asset) {
-    const key = this.createCacheName(filename, asset.module.content);
-    const deps = [...asset.module.dependencies.values()].map(item => item.module);
-    const depsInfo = deps.map(item => {
-      const p = item.filename;
-      const k = this.createCacheName(p, item.content);
-      return {p, k};
+    const key = this.createKey(filename);
+    const deps: CacheInfo['deps'] = [];
+    for (let {module} of asset.module.dependencies.values()) {
+      deps.push(module.filename);
+    }
+
+    const cache = new CacheData({
+      deps,
+      hash: hashSum(asset.module.content),
+      content: asset.content
     });
-    this.caches.set(key, {
-      depsInfo,
-      content: asset.content,
-    });
+    this.caches.set(key, cache);
     fse.writeFileSync(
       path.join(this.cacheDir, key),
-      `${JSON.stringify(depsInfo)}\n\n${asset.content}`
+      cache.toString()
     );
   }
 
@@ -60,40 +120,29 @@ export default class Cache {
     fse.removeSync(path.join(this.cacheDir, '*'));
   }
 
-  getCache(filename: string, content: string): CacheData {
-    const key = this.createCacheName(filename, content);
-    let cache = this.caches.get(key);
-    if (cache) {
-      return cache;
-    }
-    const cacheFile = path.join(this.cacheDir, key);
-    if (fse.existsSync(cacheFile)) {
-      cache = this.readCacheFile(
-        fse.readFileSync(cacheFile).toString()
-      );
-      this.caches.set(key, cache);
-      return cache;
-    }
-    return null;
-  }
-
-  readCacheFile(str: string): CacheData {
-    const index = str.indexOf('\n\n');
+  getCacheInfo(filename: string, content?: string): CacheInfo | null {
     try {
-      const depsInfo = JSON.parse(str.slice(0, index));
-      const content = str.slice(index + 2);
-      return {depsInfo, content};
+      const key = this.createKey(filename);
+      if (content == null) {
+        content = fse.readFileSync(filename).toString();
+      }
+      if (!this.validate(key, hashSum(content))) {
+        return null;
+      }
+      const cache = this.caches.get(key);
+      return cache ? cache.info : null;
     } catch (e) {
+      return null;
     }
-    return null;
   }
 
-  // finalize() {
-  //   for (let key of this.caches.keys()) {
-  //     const cache = this.caches.get(key);
-  //     if (cache != null) {
-  //       fse.writeFileSync(path.join(this.cacheDir, key), cache);
-  //     }
-  //   }
-  // }
+  validate(keyHash: string, contentHash: string): boolean {
+    let cache = this.caches.get(keyHash);
+    if (!cache) {
+      const cacheFile = path.join(this.cacheDir, keyHash);
+      cache = CacheData.restoreFromFile(cacheFile);
+      this.caches.set(keyHash, cache);
+    }
+    return !!(cache && cache.hash === contentHash);
+  }
 }

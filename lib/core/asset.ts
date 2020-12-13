@@ -23,15 +23,17 @@ export default class Asset {
   }
 
   transform() {
-    const {options, cache} = this.compiler;
-    const _cache = cache.getCache(this.module.filename, this.module.content);
-    if (options.cache && _cache != null) {
-      this.content = _cache.content;
-      return;
+    const {cache} = this.compiler;
+    if (cache.enable) {
+      const cacheInfo = cache.getCacheInfo(this.module.filename, this.module.content);
+      if (cacheInfo) {
+        this.content = cacheInfo.content;
+        return;
+      }
     }
 
     this.replaceModuleId();
-    this.transformCode();
+    this.generateAssetContent();
   }
 
   private replaceModuleId() {
@@ -43,11 +45,13 @@ export default class Asset {
       if (!/^\./.test(newModuleId)) {
         newModuleId = `./${newModuleId}`;
       }
-      dep.replacer(newModuleId);
+      if (dep.replacer) {
+        dep.replacer(newModuleId);
+      }
     });
   }
 
-  private transformCode() {
+  private generateAssetContent() {
     if (this.module.assetModule) {
       this.content = this.module.content;
     } else {
@@ -61,8 +65,8 @@ export default class Asset {
         }
       });
 
-      const {options, cache} = this.compiler;
-      if (options.cache) {
+      const {cache} = this.compiler;
+      if (cache.enable) {
         if (!this.module.ghost) {
           cache.set(this.module.filename, this);
         }
