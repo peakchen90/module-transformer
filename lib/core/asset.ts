@@ -58,18 +58,23 @@ export default class Asset {
       this.content = escodegen.generate(this.module.ast, {
         comment: true,
         format: {
-          indent: {
-            style: '  ',
-            adjustMultilineComment: true
-          }
+          indent: {style: '  ', adjustMultilineComment: true}
         }
       });
 
       const {cache} = this.compiler;
       if (cache.enable) {
-        if (!this.module.ghost) {
-          cache.set(this.module.filename, this);
+        const deps: string[] = [];
+        for (let {module} of this.module.dependencies.values()) {
+          deps.push(module.filename);
         }
+        let filename = this.module.filename;
+        const sourceContent = this.module.content;
+        const content = this.content;
+        if (this.module.ghost) {
+          filename = this.module.output as string;
+        }
+        cache.set({filename, sourceContent, deps, content});
       }
     }
   }

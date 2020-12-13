@@ -4,7 +4,6 @@ import fse from 'fs-extra';
 import os from 'os';
 import del from 'del';
 import {Compiler} from './compiler';
-import Asset from './asset';
 
 export interface CacheInfo {
   hash: string
@@ -97,23 +96,20 @@ export default class Cache {
     return hashSum(this.base + filename);
   }
 
-  set(filename: string, asset: Asset) {
-    const key = this.createKey(filename);
-    const deps: CacheInfo['deps'] = [];
-    for (let {module} of asset.module.dependencies.values()) {
-      deps.push(module.filename);
-    }
-
+  set(config: {
+    filename: string;
+    sourceContent: string
+    deps: string[]
+    content: string
+  }) {
+    const key = this.createKey(config.filename);
     const cache = new CacheData({
-      deps,
-      hash: hashSum(asset.module.content),
-      content: asset.content
+      hash: hashSum(config.sourceContent),
+      content: config.content,
+      deps: config.deps
     });
     this.caches.set(key, cache);
-    fse.writeFileSync(
-      path.join(this.cacheDir, key),
-      cache.toString()
-    );
+    fse.writeFileSync(path.join(this.cacheDir, key), cache.toString());
   }
 
   clear() {
