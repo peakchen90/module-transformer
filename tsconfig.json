@@ -19,6 +19,9 @@
     "removeComments": false,
     "baseUrl": ".",
     "paths": {
+      "module-transformer": [
+        "lib"
+      ]
     }
   },
   "include": [

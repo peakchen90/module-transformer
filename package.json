@@ -53,7 +53,7 @@
     },
     "collectCoverage": false,
     "testMatch": [
-      "**/test/**/*.{test,spec}.{ts,tsx,js,jsx}"
+      "**/test/**/*.{test,spec}.{ts,tsx}"
     ]
   },
   "dependencies": {
