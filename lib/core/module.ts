@@ -2,12 +2,12 @@ import * as acorn from 'acorn';
 import * as acornWalk from 'acorn-walk';
 import * as path from 'path';
 import * as fs from 'fs';
-import codeFrame from '@babel/code-frame';
 import builtinModules from 'builtin-modules';
 import chalk from 'chalk';
 import {Compiler} from './compiler';
 import Asset from './asset';
 import {CacheInfo} from './cache';
+import {printCodeFrame} from './util';
 
 interface ModuleOptions {
   entry?: boolean
@@ -91,12 +91,8 @@ export default class Module {
     try {
       this.ast = acorn.parse(this.content, options.advanced.parseOptions);
     } catch (err) {
-      this.compiler.logger.error(`${err.message}, at ${this.filename}`);
-      console.log(
-        codeFrame(this.content, err.loc.line, err.loc.column, {
-          highlightCode: true
-        })
-      );
+      this.compiler.logger.error(`${err.message}, at ${chalk.underline(this.filename)}`);
+      printCodeFrame(this.content, err.loc.line, err.loc.column);
       this.compiler.exit(err);
     }
     this.findDeps();
