@@ -1,10 +1,10 @@
 import hashSum from 'hash-sum';
 import * as path from 'path';
 import fse from 'fs-extra';
-import os from 'os';
 import del from 'del';
 import {Compiler} from './compiler';
 import Module from './module';
+import {getTempDir} from './util';
 
 export interface CacheInfo {
   hash: string
@@ -32,9 +32,9 @@ export class CacheData {
   }
 
   toString(): string {
-    let str = this.info.hash;
-    str += `\n${JSON.stringify(this.info.deps)}`;
-    str += `\n\n${this.info.content}`;
+    let str = this.hash;
+    str += `\n${JSON.stringify(this.deps)}`;
+    str += `\n\n${this.content}`;
     return str;
   }
 
@@ -77,7 +77,7 @@ export default class Cache {
   constructor(compiler: Compiler) {
     this.compiler = compiler;
     this.caches = new Map();
-    this.cacheDir = path.join(os.tmpdir(), '.module_transformer_cache');
+    this.cacheDir = getTempDir('.module_transformer_cache');
 
     const {context, output, cache} = compiler.options;
     if (cache && !fse.existsSync(this.cacheDir)) {
@@ -110,7 +110,8 @@ export default class Cache {
       deps: config.deps
     });
     this.caches.set(key, cache);
-    fse.writeFileSync(path.join(this.cacheDir, key), cache.toString());
+    fse.writeFile(path.join(this.cacheDir, key), cache.toString()).catch(() => {
+    });
   }
 
   clear() {
@@ -120,7 +121,7 @@ export default class Cache {
 
   getModuleCache(mod: Module) {
     let filename = mod.filename;
-    if(mod.entry) {
+    if (mod.entry) {
       filename = mod.output as string;
     }
     return this.getCacheInfo(filename, mod.content);
