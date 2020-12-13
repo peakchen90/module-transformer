@@ -42,6 +42,7 @@ export default class Module {
   readonly assetModule: boolean;
   ast?: acorn.Node;
   asset?: Asset;
+  private _isHandleCacheDeps?: boolean;
 
   constructor(compiler: Compiler, opts: ModuleOptions) {
     this.id = ++nextId;
@@ -103,6 +104,7 @@ export default class Module {
 
   private handleCacheDeps(parent: Module, deps: CacheInfo['deps']) {
     const {cache, modules} = this.compiler;
+    parent._isHandleCacheDeps = true;
     deps.forEach(filename => {
       const cacheInfo = cache.getCacheInfo(filename);
       let mod = modules.get(filename);
@@ -112,7 +114,7 @@ export default class Module {
           mod.parse();
         }
       }
-      if (cacheInfo && cacheInfo.deps.length > 0) {
+      if (!mod._isHandleCacheDeps && cacheInfo && cacheInfo.deps.length > 0) {
         this.handleCacheDeps(mod, cacheInfo.deps);
       }
       parent.addDep(mod, true);
