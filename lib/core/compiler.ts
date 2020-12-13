@@ -99,7 +99,7 @@ export class Compiler {
         include: [],
         exclude: [],
         alias: {},
-        cache: false,
+        cache: true,
         plugins: [],
         advanced: {
           parseOptions: {

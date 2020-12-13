@@ -32,8 +32,8 @@ export class CacheData {
   }
 
   toString(): string {
-    let str = this.hash;
-    str += `\n${JSON.stringify(this.deps)}`;
+    let str = `:${this.hash}`;
+    str += `\n:${JSON.stringify(this.deps)}`;
     str += `\n\n${this.content}`;
     return str;
   }
@@ -57,8 +57,9 @@ export class CacheData {
       if (index1 === -1 || index2 === -1) {
         return null;
       }
-      const hash = str.slice(0, index1);
-      const deps = JSON.parse(str.slice(index1 + 1, index2));
+      // 字段前带 `:`, 取值往后移一位
+      const hash = str.slice(1, index1);
+      const deps = JSON.parse(str.slice(index1 + 2, index2));
       const content = str.slice(index2 + 2);
       return new CacheData({hash, content, deps});
     } catch (e) {
@@ -77,7 +78,7 @@ export default class Cache {
   constructor(compiler: Compiler) {
     this.compiler = compiler;
     this.caches = new Map();
-    this.cacheDir = getTempDir('.module_transformer_cache');
+    this.cacheDir = getTempDir('.transformer_cache');
 
     const {context, output, cache} = compiler.options;
     if (cache && !fse.existsSync(this.cacheDir)) {

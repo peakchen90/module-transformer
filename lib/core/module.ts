@@ -23,6 +23,7 @@ type Replacer = (val: string) => void;
 interface Dependency {
   module: Module
   cache: boolean
+  sourceId?: string
   replacer?: Replacer
 }
 
@@ -42,7 +43,9 @@ export default class Module {
   readonly assetModule: boolean;
   ast?: acorn.Node;
   asset?: Asset;
-  private _isHandleCacheDeps?: boolean;
+  shortName?: string;
+  rootName?: string;
+  private _resolveCacheDeps?: boolean;
 
   constructor(compiler: Compiler, opts: ModuleOptions) {
     this.id = ++nextId;
@@ -69,13 +72,38 @@ export default class Module {
     }
   }
 
-  addDep(mod: Module, cache: boolean, replacer?: Replacer) {
+  addDep(mod: Module, opts: {
+    cache: boolean,
+    sourceId?: string,
+    replacer?: Replacer
+  }) {
     this.dependencies.add({
       module: mod,
-      cache,
-      replacer
+      cache: opts.cache,
+      sourceId: opts.sourceId,
+      replacer: opts.replacer
     });
     mod.dependents.add(this);
+
+    // 命名模块
+    if (this.compiler.options.output.namedModule && opts.sourceId && !mod.shortName) {
+      let name = path.parse(opts.sourceId).name;
+      if (/^\.{1,2}\//.test(opts.sourceId)) {
+        name = this.rootName ? `${this.rootName}_${name}` : name;
+      } else {
+        const arr = opts.sourceId.split('/').filter(Boolean);
+        name = arr[0] || name;
+        if (arr.length >= 2) {
+          name += `_${arr[arr.length - 1]}`;
+          name = path.parse(name).name;
+        }
+        name = mod.rootName = name;
+      }
+      mod.shortName = name;
+      if (!mod.rootName) {
+        mod.rootName = this.rootName;
+      }
+    }
   }
 
   parse() {
@@ -100,7 +128,7 @@ export default class Module {
 
   private handleCacheDeps(parent: Module, deps: CacheInfo['deps']) {
     const {cache, modules} = this.compiler;
-    parent._isHandleCacheDeps = true;
+    parent._resolveCacheDeps = true;
     deps.forEach(filename => {
       const cacheInfo = cache.getCacheInfo(filename);
       let mod = modules.get(filename);
@@ -110,10 +138,10 @@ export default class Module {
           mod.parse();
         }
       }
-      if (!mod._isHandleCacheDeps && cacheInfo && cacheInfo.deps.length > 0) {
+      if (!mod._resolveCacheDeps && cacheInfo && cacheInfo.deps.length > 0) {
         this.handleCacheDeps(mod, cacheInfo.deps);
       }
-      parent.addDep(mod, true);
+      parent.addDep(mod, {cache: true});
     });
   }
 
@@ -186,6 +214,7 @@ export default class Module {
 
   private handleDepModule(moduleId: string, replacer: Replacer, loc?: { line: string; column: string }) {
     if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
+      const sourceId = moduleId;
       moduleId = this.compiler.options.alias[moduleId] ?? moduleId;
 
       let filename: string;
@@ -201,11 +230,11 @@ export default class Module {
       let mod = modules.get(filename);
       if (!mod) {
         mod = new Module(this.compiler, {filename});
-        if (!mod.assetModule) {
-          mod.parse();
-        }
       }
-      this.addDep(mod, false, replacer);
+      this.addDep(mod, {cache: false, sourceId, replacer});
+      if (!mod.ast && !mod.assetModule) {
+        mod.parse();
+      }
     }
   }
 

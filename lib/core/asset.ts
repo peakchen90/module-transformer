@@ -2,6 +2,7 @@ import * as path from 'path';
 import escodegen from 'escodegen';
 import {Compiler} from './compiler';
 import Module from './module';
+import {getUniqueName} from './util';
 
 export default class Asset {
   readonly id: number;
@@ -19,7 +20,7 @@ export default class Asset {
     this.path = '';
     this.content = '';
     mod.asset = this;
-    this.resolveOutputPath();
+    this.resolveOutput();
   }
 
   transform() {
@@ -34,6 +35,35 @@ export default class Asset {
 
     this.replaceModuleId();
     this.generateAssetContent();
+  }
+
+  private resolveOutput() {
+    const getFilename = (_path: string): string => {
+      return path.relative(options.output.path, _path);
+    };
+
+    const {options} = this.compiler;
+    if (this.module.entry) {
+      this.path = this.module.output as string;
+      this.filename = getFilename(this.path);
+      return;
+    }
+
+    const {name, ext} = path.parse(this.module.filename);
+    if (!options.output.namedModule) {
+      this.path = path.join(options.output.moduleDir, `${this.id}${ext}`);
+      this.filename = getFilename(this.path);
+      return;
+    }
+
+    let outputPath = '', filename = '';
+    getUniqueName(this.module.shortName || name, (val) => {
+      outputPath = path.join(options.output.moduleDir, `${val}${ext}`);
+      filename = getFilename(outputPath);
+      return !this.compiler.assets.has(filename);
+    });
+    this.path = outputPath;
+    this.filename = getFilename(this.path);
   }
 
   private replaceModuleId() {
@@ -77,22 +107,5 @@ export default class Asset {
         cache.set({filename, sourceContent, deps, content});
       }
     }
-  }
-
-  private resolveOutputPath() {
-    const {options} = this.compiler;
-    if (this.module.entry) {
-      this.path = this.module.output as string;
-    } else {
-      const {name, ext} = path.parse(this.module.filename);
-      let filename: string;
-      if (options.output.namedModule) {
-        filename = `${name}_${this.id}${ext}`;
-      } else {
-        filename = `${this.id}${ext}`;
-      }
-      this.path = path.join(options.output.moduleDir, filename);
-    }
-    this.filename = path.relative(options.output.path, this.path);
   }
 }

@@ -45,3 +45,17 @@ export function getTempDir(name: string, context: string = process.cwd()): strin
   }
   return getTempDir(name, parent);
 }
+
+/**
+ * 返回唯一名字，如果重复在后面加数字
+ * @param name
+ * @param checkValid
+ */
+export function getUniqueName(name: string, checkValid: (val: string) => boolean): string {
+  let index = 0;
+  let baseName = name;
+  while (!checkValid(name)) {
+    name = `${baseName}_${++index}`;
+  }
+  return name;
+}
