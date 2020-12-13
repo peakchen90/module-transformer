@@ -1,12 +1,12 @@
 import {validate} from 'schema-utils';
-import _ from 'lodash';
 import * as path from 'path';
-import Module from './module';
+import * as fs from 'fs';
+import _ from 'lodash';
 import {Hook, HookType, Options, FinalizeOptions, FinalizeInput, PluginOption} from './types';
+import Module from './module';
 import Logger from './Logger';
 import optionsSchema from './options.json';
 import Asset from './asset';
-import * as fs from 'fs';
 import Cache from './cache';
 
 export class Compiler {

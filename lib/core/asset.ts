@@ -1,7 +1,7 @@
-import {Compiler} from './compiler';
-import escodegen from 'escodegen';
-import Module from './module';
 import * as path from 'path';
+import escodegen from 'escodegen';
+import {Compiler} from './compiler';
+import Module from './module';
 
 export default class Asset {
   readonly id: number;
