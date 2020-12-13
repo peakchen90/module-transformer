@@ -25,7 +25,7 @@ export default class Asset {
   transform() {
     const {cache} = this.compiler;
     if (cache.enable) {
-      const cacheInfo = cache.getCacheInfo(this.module.filename, this.module.content);
+      const cacheInfo = cache.getModuleCache(this.module);
       if (cacheInfo) {
         this.content = cacheInfo.content;
         return;
@@ -71,7 +71,7 @@ export default class Asset {
         let filename = this.module.filename;
         const sourceContent = this.module.content;
         const content = this.content;
-        if (this.module.ghost) {
+        if (this.module.entry) {
           filename = this.module.output as string;
         }
         cache.set({filename, sourceContent, deps, content});

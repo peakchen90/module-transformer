@@ -4,6 +4,7 @@ import fse from 'fs-extra';
 import os from 'os';
 import del from 'del';
 import {Compiler} from './compiler';
+import Module from './module';
 
 export interface CacheInfo {
   hash: string
@@ -115,6 +116,14 @@ export default class Cache {
   clear() {
     this.caches.clear();
     del.sync(path.join(this.cacheDir, '*'), {force: true});
+  }
+
+  getModuleCache(mod: Module) {
+    let filename = mod.filename;
+    if(mod.entry) {
+      filename = mod.output as string;
+    }
+    return this.getCacheInfo(filename, mod.content);
   }
 
   getCacheInfo(filename: string, content?: string): CacheInfo | null {

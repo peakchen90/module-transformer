@@ -81,7 +81,7 @@ export default class Module {
   parse() {
     const {options, cache} = this.compiler;
     if (cache.enable) {
-      const cacheInfo = cache.getCacheInfo(this.filename, this.content);
+      const cacheInfo = cache.getModuleCache(this);
       if (cacheInfo) {
         this.handleCacheDeps(this, cacheInfo.deps);
         return;
