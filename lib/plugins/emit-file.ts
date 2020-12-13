@@ -16,7 +16,6 @@ export default function emitFile() {
         );
       });
       await Promise.all(tasks);
-      compiler.cache.clear();
     });
   }
 

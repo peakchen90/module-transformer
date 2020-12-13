@@ -3,6 +3,7 @@ import {Options} from './core/types';
 import pkg from '../package.json';
 import emitFile from './plugins/emit-file';
 import clean from './plugins/clean';
+import cleanCache from './plugins/clean-cache';
 
 const version = pkg.version;
 
@@ -12,7 +13,8 @@ function transform(options: Options) {
 
 const plugins = {
   emitFile,
-  clean
+  clean,
+  cleanCache
 };
 
 const transformer = {
