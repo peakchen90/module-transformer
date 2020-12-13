@@ -37,10 +37,10 @@ transformer.transform({
   output: {
     path: 'dist',
     moduleDir: '.modules',
-    namedModule: false
+    namedModule: 'id'
   },
   include: [
-    /^[^.]/
+    /^(?!\.{1,2}\/).+/
   ],
   exclude: [],
   alias: {
@@ -86,19 +86,18 @@ require('./.modules/2.js');
 console.log('other...')
 ```
 
-
 ## 流程
 
 - 加载配置
 - 加载插件
 - 遍历解析入口
 - 按规则递归解析 module，生成模块依赖关系图
-- 根据依赖关系图替换 匹配到规则的模块id，并生成资源树
+- 根据依赖关系生成资源树
 - 编译完成
 
 ## 插件
 ```js
-function plugin(options) {
+function testPlugin(options) {
   return (compiler) => {
     compiler.hook('beforeCompile', async () => {
       console.log(compiler);
@@ -108,8 +107,17 @@ function plugin(options) {
     })
   }
 }
+
+// 配置
+const options = {
+  plugins: [
+    testPlugin({
+      // ...
+    })
+  ]
+}
 ```
 
 ## TODO
 - sourcemap
-- cache
+- test suits
