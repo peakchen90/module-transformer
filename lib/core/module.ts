@@ -24,7 +24,6 @@ interface Dependency {
   module: Module
   cache: boolean
   replacer?: Replacer
-  cacheInfo?: CacheInfo
 }
 
 let nextId = 0;
@@ -32,16 +31,16 @@ let nextId = 0;
 export default class Module {
   readonly id: number;
   readonly compiler: Compiler;
-  readonly filename: string;
-  readonly content: string;
   readonly entry: boolean;
   readonly ghost: boolean;
+  readonly filename: string;
+  readonly content: string;
+  readonly output?: string;
   readonly context: string;
   readonly dependencies: Set<Dependency>;
   readonly dependents: Set<Module>;
   readonly assetModule: boolean;
   ast?: acorn.Node;
-  output?: string;
   asset?: Asset;
 
   constructor(compiler: Compiler, opts: ModuleOptions) {
@@ -69,20 +68,11 @@ export default class Module {
     }
   }
 
-  addDep(mod: Module, replacer: Replacer) {
+  addDep(mod: Module, cache: boolean, replacer?: Replacer) {
     this.dependencies.add({
       module: mod,
-      cache: false,
+      cache,
       replacer
-    });
-    mod.dependents.add(this);
-  }
-
-  addCacheDep(mod: Module, cacheInfo?: CacheInfo) {
-    this.dependencies.add({
-      module: mod,
-      cache: true,
-      cacheInfo
     });
     mod.dependents.add(this);
   }
@@ -92,7 +82,7 @@ export default class Module {
     if (cache.enable) {
       const cacheInfo = cache.getCacheInfo(this.filename, this.content);
       if (cacheInfo) {
-        this.handleCacheDeps(cacheInfo.deps);
+        this.handleCacheDeps(this, cacheInfo.deps);
         return;
       }
     }
@@ -111,16 +101,21 @@ export default class Module {
     this.findDeps();
   }
 
-  private handleCacheDeps(deps: CacheInfo['deps']) {
+  private handleCacheDeps(parent: Module, deps: CacheInfo['deps']) {
     const {cache, modules} = this.compiler;
     deps.forEach(filename => {
       const cacheInfo = cache.getCacheInfo(filename);
       let mod = modules.get(filename);
       if (!mod) {
         mod = new Module(this.compiler, {filename});
-        if (!cacheInfo && !mod.assetModule) mod.parse();
+        if (!cacheInfo && !mod.assetModule) {
+          mod.parse();
+        }
       }
-      this.addCacheDep(mod, cacheInfo ?? undefined);
+      if (cacheInfo && cacheInfo.deps.length > 0) {
+        this.handleCacheDeps(mod, cacheInfo.deps);
+      }
+      parent.addDep(mod, true);
     });
   }
 
@@ -208,9 +203,11 @@ export default class Module {
       let mod = modules.get(filename);
       if (!mod) {
         mod = new Module(this.compiler, {filename});
-        if (!mod.assetModule) mod.parse();
+        if (!mod.assetModule) {
+          mod.parse();
+        }
       }
-      this.addDep(mod, replacer);
+      this.addDep(mod, false, replacer);
     }
   }
 

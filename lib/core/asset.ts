@@ -42,7 +42,7 @@ export default class Asset {
         path.dirname(this.path),
         dep.module.asset?.path as string
       );
-      if (!/^\./.test(newModuleId)) {
+      if (!newModuleId.startsWith('..')) {
         newModuleId = `./${newModuleId}`;
       }
       if (dep.replacer) {
