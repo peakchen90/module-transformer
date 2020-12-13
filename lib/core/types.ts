@@ -48,7 +48,7 @@ export interface Options {
    */
   alias?: Record<string, string>
   /**
-   * 是否启用缓存（默认开启），开启缓存时 namedModule 只能设置为 "hash" 模式
+   * 是否启用缓存，开启缓存时 namedModule 只能设置为 "hash" 模式
    */
   cache?: boolean
   /**

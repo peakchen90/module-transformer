@@ -130,7 +130,7 @@ export class Compiler {
         include: [],
         exclude: [],
         alias: {},
-        cache: true,
+        cache: false,
         plugins: [],
         advanced: {
           parseOptions: {
