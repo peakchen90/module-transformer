@@ -2,6 +2,7 @@ import hashSum from 'hash-sum';
 import * as path from 'path';
 import fse from 'fs-extra';
 import os from 'os';
+import del from 'del';
 import {Compiler} from './compiler';
 import Asset from './asset';
 
@@ -117,7 +118,7 @@ export default class Cache {
 
   clear() {
     this.caches.clear();
-    fse.removeSync(path.join(this.cacheDir, '*'));
+    del.sync(path.join(this.cacheDir, '*'), {force: true});
   }
 
   getCacheInfo(filename: string, content?: string): CacheInfo | null {
