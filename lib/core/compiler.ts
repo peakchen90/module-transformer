@@ -17,6 +17,7 @@ export class Compiler {
   context: string;
   logger: Logger;
   cache: Cache;
+  private _aliasRules: Array<{ test: RegExp, value: string }>;
 
   constructor(options: Options) {
     this.logger = new Logger('Compiler');
@@ -25,6 +26,7 @@ export class Compiler {
     this.hooks = [];
 
     this.options = this.loadOptions(options);
+    this._aliasRules = this.getAliasRules(this.options.alias);
     this.context = this.options.context;
     this.cache = new Cache(this);
     this.loadPlugins();
@@ -53,7 +55,7 @@ export class Compiler {
   }
 
   /**
-   * 注册钩子函数
+   * 注册钩子回调
    * @param type
    * @param callback
    */
@@ -65,7 +67,7 @@ export class Compiler {
   }
 
   /**
-   * 根据context返回决定路径
+   * 根据context返回绝对路径
    * @param args
    */
   resolvePath(...args: string[]): string {
@@ -77,7 +79,7 @@ export class Compiler {
   }
 
   /**
-   * 应用一个钩子
+   * 触发调用一种类型钩子
    * @param type
    * @param payload
    */
@@ -106,6 +108,20 @@ export class Compiler {
     this.applyHook('error', err);
     this.logger.error(err);
     process.exit(code);
+  }
+
+  /**
+   * 解析别名的值
+   * @param source
+   */
+  resolveAliasValue(source: string): string {
+    for (const aliasRule of this._aliasRules) {
+      const match = source.match(aliasRule.test);
+      if (match) {
+        return aliasRule.value + (match[1] || '');
+      }
+    }
+    return source;
   }
 
   /**
@@ -153,7 +169,7 @@ export class Compiler {
       opts.input = this.getFinalizeInput(opts);
       // 开启缓存时使用路径hash值命名
       if (opts.cache) {
-        if(opts.output.namedModule !== 'hash') {
+        if (opts.output.namedModule !== 'hash') {
           opts.output.namedModule = 'hash';
           this.logger.warn('When the `options.cache` is enabled, `options.output.namedModule` can only be "hash"');
         }
@@ -200,6 +216,26 @@ export class Compiler {
         output = path.join(outputRoot, output);
       }
       return {filename, content, output};
+    });
+  }
+
+  /**
+   * 返回别名规则
+   * @param alias
+   * @private
+   */
+  private getAliasRules(alias: FinalizeOptions['alias']) {
+    const reserved = ['^', '$', '.', '*', '+', '?', '=', '!', ':', '|', '\\', '/', '(', ')', '[', ']', '{', '}'];
+    return Object.keys(alias).map(key => {
+      let val = '';
+      for (let i = 0; i < key.length; i++) {
+        const char = key[i];
+        val += reserved.includes(char) ? `\\${char}` : char;
+      }
+      return {
+        test: new RegExp(`^${val}(\/.*)?$`),
+        value: alias[key]
+      };
     });
   }
 

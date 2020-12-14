@@ -257,8 +257,8 @@ export default class Module {
    */
   private handleDepModule(moduleId: string, replacer: Replacer, loc?: { line: string; column: string }) {
     const sourceId = moduleId;
-    if(this.entry) {
-      moduleId = this.compiler.options.alias[moduleId] ?? moduleId;
+    if (this.entry) {
+      moduleId = this.compiler.resolveAliasValue(moduleId);
     }
     if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
       let filename: string;
@@ -266,8 +266,10 @@ export default class Module {
         filename = require.resolve(moduleId, {paths: [this.context]});
       } catch (err) {
         const location = loc ? ` (${loc.line}:${loc.column})` : '';
-        this.compiler.logger.error(`Cannot find module '${moduleId}' at ${chalk.underline(this.filename + location)}`);
-        this.compiler.exit(err.stack);
+        this.compiler.logger.error(
+          `Cannot find module '${moduleId}' at ${chalk.underline(this.filename + location)}`
+        );
+        this.compiler.exit(err.stack.split('\n').slice(1).join('\n'));
       }
 
       const modules = this.compiler.modules;
