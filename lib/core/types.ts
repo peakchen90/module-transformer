@@ -1,19 +1,29 @@
-import acorn from 'acorn';
 import {Compiler} from './compiler';
+import {TransformOptions} from '@babel/core';
 
 /**
  * 入口选项
  */
-export type InputOption = {
-  filename?: string
-  content?: string
-  output?: string
-} | string
+export type InputOption = Partial<FinalizeInput[0]> | string
+
+/**
+ * 最终的入口选项
+ */
+export type FinalizeInput = Array<{
+  filename: string
+  content: string
+  output: string
+}>
 
 /**
  * 插件函数签名
  */
-export type PluginOption = (compiler: Compiler) => void
+export type PluginType = (compiler: Compiler) => void
+
+/**
+ * 拦截请求函数签名
+ */
+export type InterceptType = (filename: string, moduleId: string) => string | false
 
 /**
  * 编译器选项
@@ -44,7 +54,7 @@ export interface Options {
    */
   exclude?: (RegExp | string)[]
   /**
-   * 模块别名
+   * 配置入口模块别名
    */
   alias?: Record<string, string>
   /**
@@ -54,39 +64,38 @@ export interface Options {
   /**
    * 配置插件
    */
-  plugins?: PluginOption[]
+  plugins?: PluginType[]
   /**
    * 高级选项
    */
   advanced?: {
-    parseOptions?: Partial<acorn.Options> // acorn 解析选项
+    babel?: {
+      babelrc?: TransformOptions['babelrc']
+      plugins?: TransformOptions['plugins']
+      presets?: TransformOptions['presets']
+      env?: TransformOptions['env']
+    }
+    parseOptions?: any // TODO 取消 acorn 解析选项
   }
 }
 
 /**
- * 最终的入口信息
+ * 对象的所有属性都变成必须的
  */
-export interface FinalizeInput {
-  filename: string
-  content: string
-  output: string
+export type DeepRequired<T extends Record<any, any>> = {
+  [P in keyof T]-?: Required<T>[P] extends any[] ? T[P] : DeepRequired<T[P]>
 }
 
-export type RequiredOptions = Required<Options>
+type RequiredOptions = Required<Options>
 
 /**
  * 最终的编译器选项
  */
 export type FinalizeOptions =
-  Omit<RequiredOptions, 'input' | 'output' | 'advanced'> &
-  { input: FinalizeInput[] } &
+  Pick<RequiredOptions, 'context' | 'include' | 'exclude' | 'alias' | 'cache' | 'plugins'> &
+  { input: FinalizeInput } &
   { output: Required<RequiredOptions['output']> } &
-  {
-    advanced: Omit<Required<RequiredOptions['advanced']>, 'parseOptions'> &
-      {
-        parseOptions: acorn.Options
-      }
-  }
+  { advanced: Required<RequiredOptions['advanced']> }
 
 /**
  * Hook 类型

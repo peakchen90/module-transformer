@@ -2,7 +2,7 @@ import {validate} from 'schema-utils';
 import * as path from 'path';
 import * as fs from 'fs';
 import _ from 'lodash';
-import {Hook, HookType, Options, FinalizeOptions, FinalizeInput, PluginOption} from './types';
+import {Hook, HookType, Options, FinalizeOptions, FinalizeInput, PluginType} from './types';
 import Module from './module';
 import Logger from './logger';
 import optionsSchema from './options.json';
@@ -95,7 +95,7 @@ export class Compiler {
    * 挂载插件
    * @param plugin
    */
-  mountPlugin(plugin: PluginOption) {
+  usePlugin(plugin: PluginType) {
     plugin(this);
   }
 
@@ -185,7 +185,7 @@ export class Compiler {
    * @param options
    * @private
    */
-  private getFinalizeInput(options: Options): FinalizeInput[] {
+  private getFinalizeInput(options: Options): FinalizeInput {
     let input = options.input;
     const outputRoot = options.output?.path as string;
     if (!Array.isArray(input)) {
@@ -246,7 +246,7 @@ export class Compiler {
   private loadPlugins() {
     try {
       this.options.plugins.forEach(plugin => {
-        this.mountPlugin(plugin);
+        this.usePlugin(plugin);
       });
     } catch (err) {
       this.exit(err);

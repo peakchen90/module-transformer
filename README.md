@@ -121,3 +121,6 @@ const options = {
 ## TODO
 - sourcemap
 - test suits
+- 使用babel替换acorn
+- 忽略解析npm包的一些模块
+
