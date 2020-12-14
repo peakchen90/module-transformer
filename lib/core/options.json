@@ -127,28 +127,8 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "babel": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "babelrc": {
-              "type": "boolean"
-            },
-            "plugins": {
-              "type": "array"
-            },
-            "presets": {
-              "type": "array"
-            },
-            "env": {
-              "type": "object",
-              "patternProperties": {
-                ".+": {
-                  "type": "object"
-                }
-              }
-            }
-          }
+        "parseOptions": {
+          "type": "object"
         }
       }
     }

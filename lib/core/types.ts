@@ -1,5 +1,5 @@
 import {Compiler} from './compiler';
-import {TransformOptions} from '@babel/core';
+import acorn from 'acorn';
 
 /**
  * 入口选项
@@ -69,21 +69,8 @@ export interface Options {
    * 高级选项
    */
   advanced?: {
-    babel?: {
-      babelrc?: TransformOptions['babelrc']
-      plugins?: TransformOptions['plugins']
-      presets?: TransformOptions['presets']
-      env?: TransformOptions['env']
-    }
-    parseOptions?: any // TODO 取消 acorn 解析选项
+    parseOptions?: Partial<acorn.Options> // acorn 解析选项
   }
-}
-
-/**
- * 对象的所有属性都变成必须的
- */
-export type DeepRequired<T extends Record<any, any>> = {
-  [P in keyof T]-?: Required<T>[P] extends any[] ? T[P] : DeepRequired<T[P]>
 }
 
 type RequiredOptions = Required<Options>
@@ -95,7 +82,7 @@ export type FinalizeOptions =
   Pick<RequiredOptions, 'context' | 'include' | 'exclude' | 'alias' | 'cache' | 'plugins'> &
   { input: FinalizeInput } &
   { output: Required<RequiredOptions['output']> } &
-  { advanced: Required<RequiredOptions['advanced']> }
+  { advanced: { parseOptions: acorn.Options } }
 
 /**
  * Hook 类型
