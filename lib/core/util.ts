@@ -70,3 +70,34 @@ export function getUniqueName(name: string, checkValid: (val: string) => boolean
   }
   return name;
 }
+
+const NPM_MODULE_REGEXP = /\/node_modules\//;
+
+/**
+ * 判断是 npm 模块
+ * @param filename
+ */
+export function isNpmModule(filename: string): boolean {
+  return NPM_MODULE_REGEXP.test(filename);
+}
+
+/**
+ * 返回 npm 模块名称
+ * @param filename
+ */
+export function getNpmModuleName(filename: string): string | null {
+  const arr = filename.split('/');
+  let name: string | null = null;
+  let maybe = '';
+  for (let i = arr.length - 1; i >= 0; i--) {
+    const item = arr[i];
+    if (item === 'node_modules') {
+      name = maybe;
+      break;
+    } else {
+      maybe = item;
+    }
+  }
+
+  return name || null;
+}

@@ -7,7 +7,7 @@ import chalk from 'chalk';
 import {Compiler} from './compiler';
 import Asset from './asset';
 import {CacheInfo} from './cache';
-import {printCodeFrame} from './util';
+import {isNpmModule, printCodeFrame} from './util';
 
 /**
  * 模块构造函数选项
@@ -54,6 +54,7 @@ export default class Module {
   readonly dependencies: Set<Dependency>; // 所有的依赖信息
   readonly dependents: Set<Module>; // 被依赖的模块
   readonly assetModule: boolean; // 是否是作为一个资源模块（非 JS 文件）
+  readonly isNpmModule: boolean; // 是否是一个包含在一个 npm 模块里
   ast?: acorn.Node; // AST 对象
   asset?: Asset; // 绑定资源文件实例（后期生成资源文件时绑定）
   shortName?: string; // 短名称（用户命名模块）
@@ -74,9 +75,11 @@ export default class Module {
     if (this.ghost) {
       this.context = compiler.context;
       this.content = opts.content as string;
+      this.isNpmModule = false;
     } else {
       this.context = path.dirname(this.filename);
       this.content = fs.readFileSync(this.filename).toString();
+      this.isNpmModule = isNpmModule(this.filename);
     }
 
     const modules = this.compiler.modules;
@@ -257,10 +260,10 @@ export default class Module {
    */
   private handleDepModule(moduleId: string, replacer: Replacer, loc?: { line: string; column: string }) {
     const sourceId = moduleId;
-    if (this.entry) {
+    if (!this.isNpmModule) {
       moduleId = this.compiler.resolveAliasValue(moduleId);
     }
-    if (this.checkModuleIdValid(moduleId) && !builtinModules.includes(moduleId)) {
+    if (!builtinModules.includes(moduleId) && (this.isNpmModule || this.checkModuleIdValid(moduleId))) {
       let filename: string;
       try {
         filename = require.resolve(moduleId, {paths: [this.context]});
@@ -291,19 +294,15 @@ export default class Module {
    */
   private checkModuleIdValid(moduleId: string): boolean {
     const {options} = this.compiler;
-    if (!this.entry) { // 非入口文件解析每个依赖的模块
-      return true;
-    }
-
     let valid: boolean;
     if (!/^\.{1,2}\//.test(moduleId)) {
       valid = true;
     } else {
       // 应用 include 配置
-      valid = !!(options.include.some(item => {
+      valid = options.include.some(item => {
         if (item instanceof RegExp) return item.test(moduleId);
         return item === moduleId;
-      }));
+      });
     }
     if (!valid) return false;
 

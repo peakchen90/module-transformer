@@ -17,7 +17,7 @@ export class Compiler {
   context: string;
   logger: Logger;
   cache: Cache;
-  private _aliasRules: Array<{ test: RegExp, value: string }>;
+  private readonly _aliasRules: Array<{ test: RegExp, value: string }>;
 
   constructor(options: Options) {
     this.logger = new Logger('Compiler');
