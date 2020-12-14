@@ -149,11 +149,7 @@ export class Compiler {
         cache: false,
         plugins: [],
         advanced: {
-          parseOptions: {
-            ecmaVersion: 'latest',
-            sourceType: 'module',
-            locations: false,
-          }
+          babel: {}
         }
       };
 

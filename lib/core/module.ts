@@ -1,5 +1,4 @@
-import * as acorn from 'acorn';
-import * as acornWalk from 'acorn-walk';
+import * as babel from '@babel/core';
 import * as path from 'path';
 import * as fs from 'fs';
 import builtinModules from 'builtin-modules';
@@ -7,7 +6,6 @@ import chalk from 'chalk';
 import {Compiler} from './compiler';
 import Asset from './asset';
 import {CacheInfo} from './cache';
-import {printCodeFrame} from './util';
 
 /**
  * 模块构造函数选项
@@ -54,7 +52,7 @@ export default class Module {
   readonly dependencies: Set<Dependency>; // 所有的依赖信息
   readonly dependents: Set<Module>; // 被依赖的模块
   readonly assetModule: boolean; // 是否是作为一个资源模块（非 JS 文件）
-  ast?: acorn.Node; // AST 对象
+  ast?: babel.types.File; // AST 对象
   asset?: Asset; // 绑定资源文件实例（后期生成资源文件时绑定）
   shortName?: string; // 短名称（用户命名模块）
   rootName?: string; // 根名称（一般是npm包名）
@@ -143,13 +141,20 @@ export default class Module {
     }
 
     try {
-      this.ast = acorn.parse(this.content, options.advanced.parseOptions);
+      const res = babel.transformSync(this.content, {
+        ...options.advanced.babel,
+        ast: true,
+        code: false
+      });
+      if (res?.ast) {
+        this.ast = res.ast;
+      } else {
+        throw new Error('Unexpected parse error');
+      }
     } catch (err) {
-      this.compiler.logger.error(`${err.message}, at ${chalk.underline(this.filename)}`);
-      printCodeFrame(this.content, err.loc.line, err.loc.column);
       this.compiler.exit(err);
     }
-    this.findDeps();
+    this.findDeps(this.ast);
   }
 
   /**
@@ -181,71 +186,38 @@ export default class Module {
    * 查找模块的依赖
    * @private
    */
-  private findDeps() {
-    acornWalk.simple(this.ast as acorn.Node, {
-      CallExpression: (node: any) => {
-        if (
+  private findDeps(ast: babel.types.Node) {
+    const handleImport = ({node}: any) => {
+      this.handleDepModule(
+        node.source.value,
+        (val: string) => node.source.value = val,
+        node.source.loc?.start
+      );
+    };
+
+    const visitor = {
+      CallExpression: ({node}: any) => {
+        if ((
           node.callee.type === 'Identifier'
           && node.callee.name === 'require'
-          && node.arguments[0]?.type === 'Literal'
-          && typeof node.arguments[0]?.value === 'string'
-        ) {
+          && node.arguments[0]?.type === 'StringLiteral'
+        ) || (
+          node.callee.type === 'Import'
+          && node.arguments[0]?.type === 'StringLiteral'
+        )) {
           this.handleDepModule(
             node.arguments[0].value,
-            (val: string) => {
-              node.arguments[0].value = val;
-              node.arguments[0].raw = val;
-            },
+            (val: string) => node.arguments[0].value = val,
             node.arguments[0].loc?.start
           );
         }
       },
-      ImportExpression: (node: any) => {
-        if (
-          node.source.type === 'Literal'
-          && typeof node.source.value === 'string'
-        ) {
-          this.handleDepModule(
-            node.source.value,
-            (val: string) => {
-              node.source.value = val;
-              node.source.raw = val;
-            },
-            node.source.loc?.start
-          );
-        }
-      },
-      ImportDeclaration: (node: any) => {
-        this.handleDepModule(
-          node.source.value,
-          (val: string) => {
-            node.source.value = val;
-            node.source.raw = val;
-          },
-          node.source.loc?.start
-        );
-      },
-      ExportAllDeclaration: (node: any) => {
-        this.handleDepModule(
-          node.source.value,
-          (val: string) => {
-            node.source.value = val;
-            node.source.raw = val;
-          },
-          node.source.loc?.start
-        );
-      },
-      ExportNamedDeclaration: (node: any) => {
-        this.handleDepModule(
-          node.source.value,
-          (val: string) => {
-            node.source.value = val;
-            node.source.raw = val;
-          },
-          node.source.loc?.start
-        );
-      }
-    });
+      ImportDeclaration: handleImport,
+      ExportAllDeclaration: handleImport,
+      ExportNamedDeclaration: handleImport
+    };
+
+    babel.traverse(ast, visitor);
   }
 
   /**
@@ -300,10 +272,10 @@ export default class Module {
       valid = true;
     } else {
       // 应用 include 配置
-      valid = !!(options.include.some(item => {
+      valid = options.include.some(item => {
         if (item instanceof RegExp) return item.test(moduleId);
         return item === moduleId;
-      }));
+      });
     }
     if (!valid) return false;
 

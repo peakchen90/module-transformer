@@ -1,6 +1,6 @@
-import * as path from 'path';
-import escodegen from 'escodegen';
+import generate from '@babel/generator';
 import hashSum from 'hash-sum';
+import * as path from 'path';
 import {Compiler} from './compiler';
 import Module from './module';
 import {getUniqueName} from './util';
@@ -12,6 +12,7 @@ export default class Asset {
   filename: string;
   path: string;
   content: string;
+  map: any | null;
 
   constructor(compiler: Compiler, mod: Module) {
     this.id = mod.id;
@@ -20,6 +21,7 @@ export default class Asset {
     this.filename = '';
     this.path = '';
     this.content = '';
+    this.map = null;
     mod.asset = this;
     this.resolveOutput();
   }
@@ -110,13 +112,18 @@ export default class Asset {
   private generateAssetContent() {
     if (this.module.assetModule) {
       this.content = this.module.content;
-    } else {
-      this.content = escodegen.generate(this.module.ast, {
-        comment: true,
-        format: {
-          indent: {style: '  ', adjustMultilineComment: true}
-        }
-      });
+    } else if (this.module.ast) {
+      const res = generate(this.module.ast, {
+        comments: true,
+        minified: false,
+        sourceMaps: true,
+        sourceFileName: path.relative(this.compiler.context, this.module.filename),
+      }, this.module.content);
+
+      if (res) {
+        this.content = res.code;
+        this.map = res.map || null;
+      }
 
       // 更新缓存
       const {cache} = this.compiler;

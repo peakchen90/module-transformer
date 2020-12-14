@@ -526,12 +526,7 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@types/babel__code-frame@^7.0.2":
-  version "7.0.2"
-  resolved "https://registry.npm.taobao.org/@types/babel__code-frame/download/@types/babel__code-frame-7.0.2.tgz#e0c0f1648cbc09a9d4e5b4ed2ae9a6f7c8f5aeb0"
-  integrity sha1-4MDxZIy8CanU5bTtKumm98j1rrA=
-
-"@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
+"@types/babel__core@^7.0.0", "@types/babel__core@^7.1.12", "@types/babel__core@^7.1.7":
   version "7.1.12"
   resolved "https://registry.npm.taobao.org/@types/babel__core/download/@types/babel__core-7.1.12.tgz?cache=0&sync_timestamp=1605053170171&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fbabel__core%2Fdownload%2F%40types%2Fbabel__core-7.1.12.tgz#4d8e9e51eb265552a7e4f1ff2219ab6133bdfb2d"
   integrity sha1-TY6eUesmVVKn5PH/IhmrYTO9+y0=
@@ -542,7 +537,7 @@
     "@types/babel__template" "*"
     "@types/babel__traverse" "*"
 
-"@types/babel__generator@*":
+"@types/babel__generator@*", "@types/babel__generator@^7.6.2":
   version "7.6.2"
   resolved "https://registry.npm.taobao.org/@types/babel__generator/download/@types/babel__generator-7.6.2.tgz#f3d71178e187858f7c45e30380f8f1b7415a12d8"
   integrity sha1-89cReOGHhY98ReMDgPjxt0FaEtg=
@@ -563,11 +558,6 @@
   integrity sha1-uaHvpjUgG6m8hQMjqHk+4tNsBKA=
   dependencies:
     "@babel/types" "^7.3.0"
-
-"@types/escodegen@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.npm.taobao.org/@types/escodegen/download/@types/escodegen-0.0.6.tgz#5230a9ce796e042cda6f086dbf19f22ea330659c"
-  integrity sha1-UjCpznluBCzabwhtvxnyLqMwZZw=
 
 "@types/fs-extra@^9.0.4":
   version "9.0.5"
@@ -776,20 +766,10 @@ acorn-walk@^7.1.1:
   resolved "https://registry.npm.taobao.org/acorn-walk/download/acorn-walk-7.2.0.tgz?cache=0&sync_timestamp=1597235853605&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Facorn-walk%2Fdownload%2Facorn-walk-7.2.0.tgz#0de889a601203909b0fbe07b8938dc21d2e967bc"
   integrity sha1-DeiJpgEgOQmw++B7iTjcIdLpZ7w=
 
-acorn-walk@^8.0.0:
-  version "8.0.0"
-  resolved "https://registry.npm.taobao.org/acorn-walk/download/acorn-walk-8.0.0.tgz?cache=0&sync_timestamp=1597235853605&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Facorn-walk%2Fdownload%2Facorn-walk-8.0.0.tgz#56ae4c0f434a45fff4a125e7ea95fa9c98f67a16"
-  integrity sha1-Vq5MD0NKRf/0oSXn6pX6nJj2ehY=
-
 acorn@^7.1.1, acorn@^7.4.0:
   version "7.4.1"
   resolved "https://registry.npm.taobao.org/acorn/download/acorn-7.4.1.tgz#feaed255973d2e77555b83dbc08851a6c63520fa"
   integrity sha1-/q7SVZc9LndVW4PbwIhRpsY1IPo=
-
-acorn@^8.0.4:
-  version "8.0.4"
-  resolved "https://registry.npm.taobao.org/acorn/download/acorn-8.0.4.tgz#7a3ae4191466a6984eee0fe3407a4f3aa9db8354"
-  integrity sha1-ejrkGRRmpphO7g/jQHpPOqnbg1Q=
 
 aggregate-error@^3.0.0:
   version "3.1.0"
@@ -1566,18 +1546,6 @@ escodegen@^1.14.1:
   dependencies:
     esprima "^4.0.1"
     estraverse "^4.2.0"
-    esutils "^2.0.2"
-    optionator "^0.8.1"
-  optionalDependencies:
-    source-map "~0.6.1"
-
-escodegen@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npm.taobao.org/escodegen/download/escodegen-2.0.0.tgz?cache=0&sync_timestamp=1596667949574&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fescodegen%2Fdownload%2Fescodegen-2.0.0.tgz#5e32b12833e8aa8fa35e1bf0befa89380484c7dd"
-  integrity sha1-XjKxKDPoqo+jXhvwvvqJOASEx90=
-  dependencies:
-    esprima "^4.0.1"
-    estraverse "^5.2.0"
     esutils "^2.0.2"
     optionator "^0.8.1"
   optionalDependencies:

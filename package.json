@@ -57,21 +57,18 @@
     ]
   },
   "dependencies": {
-    "@babel/code-frame": "^7.10.4",
     "@babel/core": "^7.12.10",
-    "acorn": "^8.0.4",
-    "acorn-walk": "^8.0.0",
     "builtin-modules": "^3.1.0",
     "del": "^6.0.0",
-    "escodegen": "^2.0.0",
     "fs-extra": "^9.0.1",
     "hash-sum": "^2.0.0",
     "lodash": "^4.17.20",
     "schema-utils": "^3.0.0"
   },
   "devDependencies": {
-    "@types/babel__code-frame": "^7.0.2",
-    "@types/escodegen": "^0.0.6",
+    "@babel/generator": "^7.12.10",
+    "@types/babel__core": "^7.1.12",
+    "@types/babel__generator": "^7.6.2",
     "@types/fs-extra": "^9.0.4",
     "@types/hash-sum": "^1.0.0",
     "@types/invariant": "2.2.34",
