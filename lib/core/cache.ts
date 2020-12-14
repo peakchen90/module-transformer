@@ -85,6 +85,7 @@ export class CacheData {
 export default class Cache {
   compiler: Compiler;
   base: string;
+  baseWithOptions: string;
   enable: boolean;
   cacheDir: string;
   caches: Map<string, CacheData | null>;
@@ -94,13 +95,20 @@ export default class Cache {
     this.caches = new Map();
     this.cacheDir = getTempDir('.transformer_cache');
 
-    const {cache} = compiler.options;
-    if (cache && !fse.existsSync(this.cacheDir)) {
+    const {options} = compiler;
+    if (options.cache && !fse.existsSync(this.cacheDir)) {
       fse.mkdirSync(this.cacheDir, {recursive: true});
     }
 
-    this.enable = cache;
-    this.base = '';
+    this.enable = options.cache;
+    this.base = 'MODULE_TRANSFORMER';
+    this.baseWithOptions = JSON.stringify([
+      options.context,
+      options.output,
+      options.include.map(String),
+      options.exclude.map(String),
+      options.alias
+    ]);
   }
 
   /**
@@ -154,16 +162,8 @@ export default class Cache {
    * @param mod
    */
   getModuleCacheFilename(mod: Module) {
-    const {options} = this.compiler;
     if (mod.entry) {
-      return JSON.stringify({
-        a: mod.output,
-        b: options.context,
-        c: options.output,
-        d: options.include.map(String),
-        e: options.exclude.map(String),
-        f: options.alias
-      });
+      return this.baseWithOptions + mod.output;
     }
     return mod.filename;
   }
