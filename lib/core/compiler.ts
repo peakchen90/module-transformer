@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import _ from 'lodash';
 import {Hook, HookType, Options, FinalizeOptions, FinalizeInput, PluginOption} from './types';
 import Module from './module';
-import Logger from './Logger';
+import Logger from './logger';
 import optionsSchema from './options.json';
 import Asset from './asset';
 import Cache from './cache';
