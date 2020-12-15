@@ -17,10 +17,9 @@ transformer.transform({
     namedModule: 'named',
   },
   cache: false,
-  include: [],
   exclude: [],
   alias: {
-    '@@@': 'chalk'
+    'aaa': 'chalk'
   },
   plugins: [
     transformer.plugins.clean(),

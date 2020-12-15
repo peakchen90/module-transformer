@@ -100,9 +100,6 @@
         }
       }
     },
-    "include": {
-      "$ref": "#/definitions/matchArray"
-    },
     "exclude": {
       "$ref": "#/definitions/matchArray"
     },

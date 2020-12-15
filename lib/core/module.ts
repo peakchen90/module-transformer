@@ -7,7 +7,7 @@ import chalk from 'chalk';
 import {Compiler} from './compiler';
 import Asset from './asset';
 import {CacheInfo} from './cache';
-import {isNpmModule, printCodeFrame} from './util';
+import {isNpmModule, isRelativeModule, printCodeFrame} from './util';
 
 /**
  * 模块构造函数选项
@@ -113,7 +113,7 @@ export default class Module {
       && !mod.shortName
     ) {
       let name = path.parse(opts.sourceId).name;
-      if (/^\.{1,2}\//.test(opts.sourceId)) {
+      if (isRelativeModule(opts.sourceId)) {
         name = this.rootName ? `${this.rootName}_${name}` : name;
       } else {
         const arr = opts.sourceId.split('/').filter(Boolean);
@@ -261,9 +261,9 @@ export default class Module {
   private handleDepModule(moduleId: string, replacer: Replacer, loc?: { line: string; column: string }) {
     const sourceId = moduleId;
     if (!this.isNpmModule) {
-      moduleId = this.compiler.resolveAliasValue(moduleId);
+      moduleId = this.compiler.resolveAlias(moduleId);
     }
-    if (!builtinModules.includes(moduleId) && (this.isNpmModule || this.checkModuleIdValid(moduleId))) {
+    if (this.checkModuleIdValid(moduleId)) {
       let filename: string;
       try {
         filename = require.resolve(moduleId, {paths: [this.context]});
@@ -294,23 +294,14 @@ export default class Module {
    */
   private checkModuleIdValid(moduleId: string): boolean {
     const {options} = this.compiler;
-    let valid: boolean;
-    if (!/^\.{1,2}\//.test(moduleId)) {
-      valid = true;
-    } else {
-      // 应用 include 配置
-      valid = options.include.some(item => {
-        if (item instanceof RegExp) return item.test(moduleId);
-        return item === moduleId;
-      });
+    if (builtinModules.includes(moduleId)) {
+      return false;
     }
-    if (!valid) return false;
+    if (this.isNpmModule) {
+      return true;
+    }
 
     // 应用 exclude 配置
-    valid = !(options.exclude.some(item => {
-      if (item instanceof RegExp) return item.test(moduleId);
-      return item === moduleId;
-    }));
-    return valid;
+    return !(options.exclude.some(item => item.test(moduleId)));
   }
 }

@@ -8,6 +8,7 @@ import Logger from './logger';
 import optionsSchema from './options.json';
 import Asset from './asset';
 import Cache from './cache';
+import {createModulePrefixRegexp} from './util';
 
 export class Compiler {
   readonly modules: Map<string, Module>;
@@ -114,7 +115,7 @@ export class Compiler {
    * 解析别名的值
    * @param source
    */
-  resolveAliasValue(source: string): string {
+  resolveAlias(source: string): string {
     for (const aliasRule of this._aliasRules) {
       const match = source.match(aliasRule.test);
       if (match) {
@@ -143,7 +144,6 @@ export class Compiler {
           moduleDir: '.modules',
           namedModule: 'id'
         },
-        include: [],
         exclude: [],
         alias: {},
         cache: false,
@@ -174,6 +174,12 @@ export class Compiler {
           this.logger.warn('When the `options.cache` is enabled, `options.output.namedModule` can only be "hash"');
         }
       }
+      opts.exclude = opts.exclude.map((item: any) => {
+        if (!(item instanceof RegExp)) {
+          return createModulePrefixRegexp(item);
+        }
+        return item;
+      });
       return opts;
     } catch (err) {
       this.exit(err);
@@ -225,15 +231,9 @@ export class Compiler {
    * @private
    */
   private getAliasRules(alias: FinalizeOptions['alias']) {
-    const reserved = ['^', '$', '.', '*', '+', '?', '=', '!', ':', '|', '\\', '/', '(', ')', '[', ']', '{', '}'];
     return Object.keys(alias).map(key => {
-      let val = '';
-      for (let i = 0; i < key.length; i++) {
-        const char = key[i];
-        val += reserved.includes(char) ? `\\${char}` : char;
-      }
       return {
-        test: new RegExp(`^${val}(\/.*)?$`),
+        test: createModulePrefixRegexp(key),
         value: alias[key]
       };
     });

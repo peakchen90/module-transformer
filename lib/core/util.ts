@@ -72,6 +72,7 @@ export function getUniqueName(name: string, checkValid: (val: string) => boolean
 }
 
 const NPM_MODULE_REGEXP = /\/node_modules\//;
+const RELATIVE_MODULE_REGEXP = /^\.{1,2}\//;
 
 /**
  * 判断是 npm 模块
@@ -79,6 +80,14 @@ const NPM_MODULE_REGEXP = /\/node_modules\//;
  */
 export function isNpmModule(filename: string): boolean {
   return NPM_MODULE_REGEXP.test(filename);
+}
+
+/**
+ * 判断是相对路径模块
+ * @param moduleId
+ */
+export function isRelativeModule(moduleId: string): boolean {
+  return RELATIVE_MODULE_REGEXP.test(moduleId);
 }
 
 /**
@@ -100,4 +109,18 @@ export function getNpmModuleName(filename: string): string | null {
   }
 
   return name || null;
+}
+
+/**
+ * 创建模块路径前置匹配的正则
+ * @param str
+ */
+export function createModulePrefixRegexp(str: string) {
+  const reserved = ['^', '$', '.', '*', '+', '?', '=', '!', ':', '|', '\\', '/', '(', ')', '[', ']', '{', '}'];
+  let val = '';
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    val += reserved.includes(char) ? `\\${char}` : char;
+  }
+  return new RegExp(`^${val}(\/.*)?$`);
 }

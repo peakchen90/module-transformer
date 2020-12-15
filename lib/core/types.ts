@@ -46,10 +46,6 @@ export interface Options {
     namedModule?: 'id' | 'hash' | 'named' // 模块命名方式（默认: "id"）
   }
   /**
-   * 包含编译的模块（默认: 非相对路径模块）
-   */
-  include?: (RegExp | string)[]
-  /**
    * 需要排除编译的模块
    */
   exclude?: (RegExp | string)[]
@@ -79,8 +75,9 @@ type RequiredOptions = Required<Options>
  * 最终的编译器选项
  */
 export type FinalizeOptions =
-  Pick<RequiredOptions, 'context' | 'include' | 'exclude' | 'alias' | 'cache' | 'plugins'> &
+  Pick<RequiredOptions, 'context' | 'alias' | 'cache' | 'plugins'> &
   { input: FinalizeInput } &
+  { exclude: RegExp[] } &
   { output: Required<RequiredOptions['output']> } &
   { advanced: { parseOptions: acorn.Options } }
 

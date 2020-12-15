@@ -105,7 +105,6 @@ export default class Cache {
     this.baseWithOptions = JSON.stringify([
       options.context,
       options.output,
-      options.include.map(String),
       options.exclude.map(String),
       options.alias
     ]);
