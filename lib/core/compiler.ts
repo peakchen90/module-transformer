@@ -116,10 +116,11 @@ export class Compiler {
    * @param source
    */
   resolveAlias(source: string): string {
-    for (const aliasRule of this._aliasRules) {
-      const match = source.match(aliasRule.test);
+    for (let i = this._aliasRules.length - 1; i >= 0 ; i--) {
+      const rule = this._aliasRules[i];
+      const match = source.match(rule.test);
       if (match) {
-        return aliasRule.value + (match[1] || '');
+        return rule.value + (match[1] || '');
       }
     }
     return source;
