@@ -152,8 +152,7 @@ export class Compiler {
         advanced: {
           parseOptions: {
             ecmaVersion: 'latest',
-            sourceType: 'module',
-            locations: false,
+            sourceType: 'module'
           }
         }
       };
