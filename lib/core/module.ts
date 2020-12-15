@@ -260,10 +260,11 @@ export default class Module {
    */
   private handleDepModule(moduleId: string, replacer: Replacer, loc?: { line: string; column: string }) {
     const sourceId = moduleId;
-    if (!this.isNpmModule) {
-      moduleId = this.compiler.resolveAlias(moduleId);
-    }
-    if (this.checkModuleIdValid(moduleId)) {
+    if (this.checkModuleIdValid(sourceId)) {
+      if (!this.isNpmModule) {
+        moduleId = this.compiler.resolveAlias(moduleId);
+      }
+
       let filename: string;
       try {
         filename = require.resolve(moduleId, {paths: [this.context]});
@@ -299,6 +300,9 @@ export default class Module {
     }
     if (this.isNpmModule) {
       return true;
+    }
+    if (this.ghost && isRelativeModule(moduleId)) {
+      return false;
     }
 
     // 应用 exclude 配置
