@@ -57,6 +57,7 @@ export default class Module {
   readonly isNpmModule: boolean; // 是否是一个包含在一个 npm 模块里
   ast?: acorn.Node; // AST 对象
   asset?: Asset; // 绑定资源文件实例（后期生成资源文件时绑定）
+  cacheInfo?: CacheInfo | null; // 模块缓存信息
   shortName?: string; // 短名称（用户命名模块）
   rootName?: string; // 根名称（一般是npm包名）
   private _resolveCacheDeps?: boolean; // 是否解析过缓存依赖（解决循环引用）
@@ -86,6 +87,30 @@ export default class Module {
     if (!modules.get(this.filename)) {
       modules.set(this.filename, this);
     }
+  }
+
+  /**
+   * 解析模块
+   */
+  parse() {
+    const {options, cache} = this.compiler;
+    // 验证缓存
+    if (cache.enable) {
+      this.cacheInfo = this.cacheInfo || cache.getModuleCache(this);
+      if (this.cacheInfo) {
+        this.handleCacheDeps(this, this.cacheInfo.deps);
+        return;
+      }
+    }
+
+    try {
+      this.ast = acorn.parse(this.content, options.advanced.parseOptions);
+    } catch (err) {
+      this.compiler.logger.error(`${err.message}, at ${chalk.underline(this.filename)}`);
+      printCodeFrame(this.content, err.loc.line, err.loc.column);
+      this.compiler.exit(err);
+    }
+    this.findDeps();
   }
 
   /**
@@ -129,30 +154,6 @@ export default class Module {
         mod.rootName = this.rootName;
       }
     }
-  }
-
-  /**
-   * 解析模块
-   */
-  parse() {
-    const {options, cache} = this.compiler;
-    // 验证缓存
-    if (cache.enable) {
-      const cacheInfo = cache.getModuleCache(this);
-      if (cacheInfo) {
-        this.handleCacheDeps(this, cacheInfo.deps);
-        return;
-      }
-    }
-
-    try {
-      this.ast = acorn.parse(this.content, options.advanced.parseOptions);
-    } catch (err) {
-      this.compiler.logger.error(`${err.message}, at ${chalk.underline(this.filename)}`);
-      printCodeFrame(this.content, err.loc.line, err.loc.column);
-      this.compiler.exit(err);
-    }
-    this.findDeps();
   }
 
   /**

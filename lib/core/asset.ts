@@ -30,12 +30,9 @@ export default class Asset {
   transform() {
     const {cache} = this.compiler;
     // 校验缓存，如果没有失效跳过转换，直接读取缓存内容
-    if (cache.enable) {
-      const cacheInfo = cache.getModuleCache(this.module);
-      if (cacheInfo) {
-        this.content = cacheInfo.content;
+    if (cache.enable && this.module.cacheInfo) {
+        this.content = this.module.cacheInfo.content;
         return;
-      }
     }
 
     this.replaceModuleId();
