@@ -162,7 +162,7 @@ export default class Cache {
    */
   getModuleCacheFilename(mod: Module) {
     if (!mod.isNpmModule) {
-      return this.baseWithOptions + mod.output;
+      return this.baseWithOptions + (mod.entry ? mod.output : mod.filename);
     }
     return mod.filename;
   }
