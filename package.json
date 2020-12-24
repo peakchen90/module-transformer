@@ -32,7 +32,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">= 8.6.0"
+    "node": ">= 10.0.0"
   },
   "husky": {
     "hooks": {
@@ -68,7 +68,7 @@
     "acorn": "^8.0.4",
     "acorn-walk": "^8.0.0",
     "builtin-modules": "^3.1.0",
-    "del": "5.1.0",
+    "del": "^6.0.0",
     "escodegen": "^2.0.0",
     "fs-extra": "^9.0.1",
     "hash-sum": "^2.0.0",
