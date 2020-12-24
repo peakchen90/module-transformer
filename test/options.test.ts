@@ -1,4 +1,4 @@
-import {Compiler} from 'module-transformer';
+import {Compiler} from '../lib';
 import {mId, readFile} from './util';
 import * as path from 'path';
 

@@ -1,4 +1,4 @@
-import {plugins, transform} from 'module-transformer';
+import {plugins, transform} from '../lib';
 import {ExpectedAssets, ExpectedModules, mId, validateAssets, validateModules} from './util';
 
 describe('transformer', () => {

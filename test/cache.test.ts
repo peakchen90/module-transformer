@@ -1,5 +1,5 @@
 import {mId} from './util';
-import {plugins, transform} from 'module-transformer';
+import {plugins, transform} from '../lib';
 import del from 'del';
 import * as path from 'path';
 

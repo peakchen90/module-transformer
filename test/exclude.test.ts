@@ -1,4 +1,4 @@
-import {transform} from 'module-transformer';
+import {transform} from '../lib';
 import {ExpectedAssets, ExpectedModules, mId, validateAssets, validateModules} from './util';
 
 describe('Exclude', () => {
