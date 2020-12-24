@@ -166,16 +166,18 @@ export default class Module {
     const {cache, modules} = this.compiler;
     parent._resolveCacheDeps = true;
     deps.forEach(filename => {
-      const cacheInfo = cache.getCacheInfo(filename);
       let mod = modules.get(filename);
-      if (!mod) {
+      if (mod) {
+        mod.cacheInfo = mod.cacheInfo || cache.getModuleCache(mod);
+      } else {
         mod = new Module(this.compiler, {filename});
-        if (!cacheInfo && !mod.assetModule) {
+        mod.cacheInfo = mod.cacheInfo || cache.getModuleCache(mod);
+        if (!mod.cacheInfo && !mod.assetModule) {
           mod.parse();
         }
       }
-      if (!mod._resolveCacheDeps && cacheInfo && cacheInfo.deps.length > 0) {
-        this.handleCacheDeps(mod, cacheInfo.deps);
+      if (!mod._resolveCacheDeps && mod.cacheInfo && mod.cacheInfo.deps.length > 0) {
+        this.handleCacheDeps(mod, mod.cacheInfo.deps);
       }
       parent.addDep(mod, {cache: true});
     });

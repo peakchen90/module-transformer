@@ -1,6 +1,5 @@
-import vm from 'vm';
 import {plugins, transform} from 'module-transformer';
-import {ExpectedAssets, ExpectedModules, mId, readFile, validateAssets, validateModules} from './util';
+import {ExpectedAssets, ExpectedModules, mId, validateAssets, validateModules} from './util';
 
 describe('transformer', () => {
   test('transform', async () => {
