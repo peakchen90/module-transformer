@@ -1,4 +1,5 @@
-import {transform} from 'module-transformer';
+import vm from 'vm';
+import {plugins, transform} from 'module-transformer';
 import {ExpectedAssets, ExpectedModules, mId, readFile, validateAssets, validateModules} from './util';
 
 describe('transformer', () => {
@@ -299,5 +300,26 @@ describe('transformer', () => {
 
     validateModules(expectedModules, modules);
     validateAssets(expectedAssets, assets);
+  });
+
+  test('evaluate', async () => {
+    const input = mId('entry-1.js');
+    await transform({
+      context: mId(),
+      input: input,
+      plugins: [
+        plugins.clean(),
+        plugins.emitFile()
+      ]
+    });
+
+    const res = require(mId('dist/entry-1.js'));
+    expect(res.a.toString()).toBe('a-1');
+    expect(res.b.toString()).toBe('b-2');
+    expect(res.c.toString()).toBe('c');
+    expect(res.c.printB()).toBe('b-2');
+    expect(res.c.printD().toString()).toBe('d');
+    expect(res.d.toString()).toBe('d');
+    expect(res.entry2).toBe('entry-2');
   });
 });

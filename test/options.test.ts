@@ -2,7 +2,7 @@ import {Compiler} from 'module-transformer';
 import {mId, readFile} from './util';
 import * as path from 'path';
 
-describe.skip('Options', () => {
+describe('Options', () => {
   test('default options', () => {
     const entryPath = mId('entry-1.js');
     const cwd = process.cwd();

@@ -11,6 +11,7 @@ test/**/*.js
 test/**/*.js.map
 test/**/*.d.ts
 !**/fixtures/**/*
+**/fixtures/dist/
 !.gitkeep
 
 # local env files
