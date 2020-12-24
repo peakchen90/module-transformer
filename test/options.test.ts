@@ -1,16 +1,15 @@
 import {Compiler} from 'module-transformer';
-import {getFixturesPath, readFile} from '../util';
+import {mId, readFile} from './util';
 import * as path from 'path';
 
-const entryContent = readFile(getFixturesPath('entry-1.js'));
-
-describe('Options', () => {
+describe.skip('Options', () => {
   test('default options', () => {
-    const entryPath = getFixturesPath('entry-1.js');
+    const entryPath = mId('entry-1.js');
     const cwd = process.cwd();
     const compiler = new Compiler({
       input: entryPath
     });
+
     expect(compiler.options).toEqual({
       context: cwd,
       input: [
@@ -35,6 +34,22 @@ describe('Options', () => {
           sourceType: 'module',
         }
       }
+    });
+  });
+
+  test('ghost entry', () => {
+    const compiler = new Compiler({
+      input: [
+        {
+          content: readFile(mId('entry-1.js')),
+          output: 'a/b.js'
+        }
+      ]
+    });
+    expect(compiler.options.input[0]).toEqual({
+      filename: 'ghost://entry/1.js',
+      output: path.join(process.cwd(), 'dist/a/b.js'),
+      content: readFile(mId('entry-1.js')),
     });
   });
 });

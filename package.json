@@ -51,7 +51,14 @@
     "transform": {
       "\\.tsx?$": "ts-jest"
     },
-    "collectCoverage": false,
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/lib/**/*.ts"
+    ],
+    "coveragePathIgnorePatterns": [
+      ".+\\.d\\.ts$"
+    ],
+    "coverageDirectory": "test/coverage",
     "testMatch": [
       "**/test/**/*.{test,spec}.{ts,tsx}"
     ]
@@ -86,6 +93,7 @@
     "jest": "26.4.2",
     "lint-staged": "10.3.0",
     "ora": "5.0.0",
+    "prettier": "^2.2.1",
     "ts-jest": "26.3.0",
     "typescript": "4.0.2"
   }

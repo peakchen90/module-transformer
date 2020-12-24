@@ -39,9 +39,6 @@ transformer.transform({
     moduleDir: '.modules',
     namedModule: 'id'
   },
-  include: [
-    /^(?!\.{1,2}\/).+/
-  ],
   exclude: [],
   alias: {
     '@': path.join(__dirname, 'src')
