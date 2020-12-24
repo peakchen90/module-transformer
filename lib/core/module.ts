@@ -54,7 +54,7 @@ export default class Module {
   readonly dependencies: Set<Dependency>; // 所有的依赖信息
   readonly dependents: Set<Module>; // 被依赖的模块
   readonly assetModule: boolean; // 是否是作为一个资源模块（非 JS 文件）
-  readonly isNpmModule: boolean; // 是否是一个包含在一个 npm 模块里
+  readonly npmModule: boolean; // 是否是一个包含在一个 npm 模块里
   ast?: acorn.Node; // AST 对象
   asset?: Asset; // 绑定资源文件实例（后期生成资源文件时绑定）
   cacheInfo?: CacheInfo | null; // 模块缓存信息
@@ -76,11 +76,11 @@ export default class Module {
     if (this.ghost) {
       this.context = compiler.context;
       this.content = opts.content as string;
-      this.isNpmModule = false;
+      this.npmModule = false;
     } else {
       this.context = path.dirname(this.filename);
       this.content = fs.readFileSync(this.filename).toString();
-      this.isNpmModule = isNpmModule(this.filename);
+      this.npmModule = isNpmModule(this.filename);
     }
 
     const modules = this.compiler.modules;
@@ -262,7 +262,7 @@ export default class Module {
   private handleDepModule(moduleId: string, replacer: Replacer, loc?: { line: string; column: string }) {
     const sourceId = moduleId;
     if (this.checkModuleIdValid(sourceId)) {
-      if (!this.isNpmModule) {
+      if (!this.npmModule) {
         moduleId = this.compiler.resolveAlias(moduleId);
       }
 
@@ -299,7 +299,7 @@ export default class Module {
     if (builtinModules.includes(moduleId)) {
       return false;
     }
-    if (this.isNpmModule) {
+    if (this.npmModule) {
       return true;
     }
     if (this.ghost && isRelativeModule(moduleId)) {
