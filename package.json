@@ -1,6 +1,6 @@
 {
   "name": "module-transformer",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.1-alpha.1",
   "description": "transform the npm modules to the dest path",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
