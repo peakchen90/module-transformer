@@ -10,8 +10,7 @@
     "build": "tsc",
     "test": "jest",
     "lint": "eslint {lib,test}/**/*.ts --fix",
-    "prepublishOnly": "npm run build",
-    "postpublish": "node -e ''"
+    "prepublishOnly": "npm run test && npm run build"
   },
   "homepage": "https://github.com/peakchen90/module-transformer",
   "bugs": {
