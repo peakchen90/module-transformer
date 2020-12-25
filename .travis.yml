@@ -36,8 +36,6 @@ jobs:
         skip_cleanup: true
         on:
           branch: master
-      after_deploy:
-        - node scripts/tag.js
 
 notifications:
   email: false
