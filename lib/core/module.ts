@@ -242,14 +242,16 @@ export default class Module {
         );
       },
       ExportNamedDeclaration: (node: any) => {
-        this.handleDepModule(
-          node.source.value,
-          (val: string) => {
-            node.source.value = val;
-            node.source.raw = val;
-          },
-          node.source.loc?.start
-        );
+        if (node.source) {
+          this.handleDepModule(
+            node.source.value,
+            (val: string) => {
+              node.source.value = val;
+              node.source.raw = val;
+            },
+            node.source.loc?.start
+          );
+        }
       }
     });
   }

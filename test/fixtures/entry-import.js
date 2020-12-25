@@ -7,3 +7,4 @@ import('d');
 require('d');
 import(filename);
 require(filename);
+export function abc(){}

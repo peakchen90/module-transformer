@@ -28,6 +28,7 @@ describe('transformer', () => {
           require('./.npm/2.js');
           import(filename);
           require(filename);
+          export function abc(){}
         `
       },
       '.npm/2.js': {
