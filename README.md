@@ -1,6 +1,8 @@
 # module-transformer
 transform the node module to the dest path
 
+[![Build Status](https://travis-ci.com/peakchen90/module-transformer.svg?branch=master)](https://travis-ci.com/peakchen90/module-transformer)
+
 ## example
 
 ### source file
@@ -44,7 +46,9 @@ transformer.transform({
     '@': path.join(__dirname, 'src')
   },
   cache: false,
-  plugins: [],
+  plugins: [
+    transformer.plugins.emitFile()
+  ],
   advanced: {
     parseOptions: {
       ecmaVersion: 2020
