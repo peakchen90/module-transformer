@@ -1,6 +1,6 @@
 {
   "name": "module-transformer",
-  "version": "0.0.1-alpha.2",
+  "version": "0.0.1",
   "description": "transform the npm modules to the dest path",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -33,7 +33,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">= 10.0.0"
+    "node": ">= 10.13.0"
   },
   "husky": {
     "hooks": {
