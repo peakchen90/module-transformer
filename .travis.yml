@@ -4,7 +4,7 @@ os:
   - linux
 
 node_js:
-  - "10.0.0"
+  - "10.13.0"
   - "12"
 
 install:
@@ -34,6 +34,8 @@ jobs:
         skip_cleanup: true
         on:
           branch: master
+      after_deploy:
+        - node scripts/tag.js
 
 notifications:
   email: false
