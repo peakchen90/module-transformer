@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as prettier from 'prettier';
-import {Compiler} from 'module-transformer';
+import {Compiler} from '../lib';
 
 /**
  * 返回 fixtures 指定目录的模块id路径
