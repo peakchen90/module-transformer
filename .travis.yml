@@ -21,7 +21,7 @@ jobs:
       name: "Run test scripts"
       node_js: "14"
       script:
-        - npm run test
+        - npm run test:no-cache
 
     - stage: releaseNpm
       name: "Release npm package"

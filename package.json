@@ -9,6 +9,7 @@
     "start": "tsc -w",
     "build": "tsc",
     "test": "jest",
+    "test:no-cache": "jest --no-cache",
     "lint": "eslint {lib,test}/**/*.ts --fix",
     "prepublishOnly": "npm run build"
   },
@@ -50,6 +51,7 @@
     "transform": {
       "\\.tsx?$": "ts-jest"
     },
+
     "collectCoverage": false,
     "collectCoverageFrom": [
       "**/lib/**/*.ts"
