@@ -4,8 +4,8 @@ os:
   - linux
 
 node_js:
-  - "8.6"
   - "10"
+  - "12"
 
 install:
   - yarn install
