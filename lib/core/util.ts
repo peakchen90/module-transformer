@@ -2,6 +2,7 @@ import codeFrame from '@babel/code-frame';
 import * as path from 'path';
 import * as os from 'os';
 import fse from 'fs-extra';
+import * as acorn from 'acorn';
 
 /**
  * 根据位置返回行、列信息
@@ -28,16 +29,14 @@ export function getLineColumn(source: string, pos: number): { line: number; colu
  * @param lineOrPos
  * @param column
  */
-export function printCodeFrame(source: string, lineOrPos: number, column?: number) {
+export function createCodeFrame(source: string, lineOrPos: number, column?: number) {
   let line = lineOrPos;
   if (column == null) {
     const loc = getLineColumn(source, lineOrPos);
     line = loc.line;
     column = loc.column;
   }
-  console.log(
-    codeFrame(source, line, column, {highlightCode: true})
-  );
+  return codeFrame(source, line, column, {highlightCode: true});
 }
 
 /**
@@ -123,4 +122,54 @@ export function createModulePrefixRegexp(str: string) {
     val += reserved.includes(char) ? `\\${char}` : char;
   }
   return new RegExp(`^${val}(\/.*)?$`);
+}
+
+/**
+ * 合并对象里的方法
+ * @param target
+ * @param source
+ */
+export function mergeMethods(
+  target: Record<string, (...args: any[]) => any>,
+  source?: Record<string, (...args: any[]) => any>
+): Record<string, (...args: any[]) => any> {
+  if (source) {
+    Object.keys(source).forEach(key => {
+      const value = target[key];
+      if (typeof value === 'function') {
+        target[key] = function (...args) {
+          value.apply(this, args);
+          source[key].apply(this, args);
+        };
+      } else {
+        target[key] = source[key];
+      }
+    });
+  }
+  return target;
+}
+
+/**
+ * 解析表达式，生成Node
+ * @param value
+ */
+export function parseExpression(value: string): acorn.Node {
+  try {
+    return acorn.parseExpressionAt(value, 0, {
+      ecmaVersion: 'latest',
+      sourceType: 'script',
+      allowAwaitOutsideFunction: false,
+      allowImportExportEverywhere: false,
+      allowReturnOutsideFunction: false
+    });
+  } catch (err) {
+    err.message += `\n${createCodeFrame(value, err.loc.line, err.loc.column)}`;
+    throw err;
+  }
+}
+
+/**
+ * 空操作
+ */
+export function noop(): any {
 }

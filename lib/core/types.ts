@@ -93,6 +93,7 @@ export type HookType =
   | 'done'
   | 'error'
   | 'log'
+  | 'visitor'
 
 export interface Hook {
   type: HookType

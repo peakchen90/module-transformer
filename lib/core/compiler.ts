@@ -8,7 +8,7 @@ import Logger from './logger';
 import optionsSchema from './options.json';
 import Asset from './asset';
 import Cache from './cache';
-import {createModulePrefixRegexp} from './util';
+import {createModulePrefixRegexp, mergeMethods} from './util';
 
 export class Compiler {
   readonly modules: Map<string, Module>;
@@ -18,7 +18,8 @@ export class Compiler {
   context: string;
   logger: Logger;
   cache: Cache;
-  private readonly _aliasRules: Array<{ test: RegExp, value: string }>;
+  _aliasRules: Array<{ test: RegExp, value: string }>;
+  _acornCustomVisitor?: Record<string, (...args: any[]) => any>;
 
   constructor(options: Options) {
     this.logger = new Logger('Compiler');
@@ -51,7 +52,7 @@ export class Compiler {
         assets: this.assets,
       };
     } catch (err) {
-      this.exit(err);
+      this.raise(err);
     }
   }
 
@@ -65,6 +66,16 @@ export class Compiler {
       type,
       callback
     });
+  }
+
+  /**
+   * 注册自定义visitor
+   */
+  applyCustomVisitor(visitor: Record<string, (...args: any[]) => any>) {
+    this._acornCustomVisitor = mergeMethods(
+      this._acornCustomVisitor || {},
+      visitor
+    );
   }
 
   /**
@@ -96,19 +107,18 @@ export class Compiler {
    * 挂载插件
    * @param plugin
    */
-  usePlugin(plugin: PluginType) {
+  applyPlugin(plugin: PluginType) {
     plugin(this);
   }
 
   /**
-   * 退出进程
+   * 抛出错误
    * @param err
-   * @param code
    */
-  exit(err: any, code = 1): never {
+  raise(err: any): never {
     this.applyHook('error', err);
     this.logger.error(err);
-    process.exit(code);
+    throw new Error(err);
   }
 
   /**
@@ -116,7 +126,7 @@ export class Compiler {
    * @param source
    */
   resolveAlias(source: string): string {
-    for (let i = this._aliasRules.length - 1; i >= 0 ; i--) {
+    for (let i = this._aliasRules.length - 1; i >= 0; i--) {
       const rule = this._aliasRules[i];
       const match = source.match(rule.test);
       if (match) {
@@ -182,7 +192,7 @@ export class Compiler {
       });
       return opts;
     } catch (err) {
-      this.exit(err);
+      this.raise(err);
     }
   }
 
@@ -246,10 +256,10 @@ export class Compiler {
   private loadPlugins() {
     try {
       this.options.plugins.forEach(plugin => {
-        this.usePlugin(plugin);
+        this.applyPlugin(plugin);
       });
     } catch (err) {
-      this.exit(err);
+      this.raise(err);
     }
   }
 

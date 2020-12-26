@@ -4,6 +4,7 @@ import pkg from '../package.json';
 import emitFile from './plugins/emit-file';
 import clean from './plugins/clean';
 import cleanCache from './plugins/clean-cache';
+import replace from './plugins/replace';
 
 /**
  * 版本
@@ -24,7 +25,8 @@ function transform(options: Options) {
 const plugins = {
   emitFile,
   clean,
-  cleanCache
+  cleanCache,
+  replace
 };
 
 const transformer = {

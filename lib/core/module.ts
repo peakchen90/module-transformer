@@ -7,7 +7,7 @@ import chalk from 'chalk';
 import {Compiler} from './compiler';
 import Asset from './asset';
 import {CacheInfo} from './cache';
-import {isNpmModule, isRelativeModule, printCodeFrame} from './util';
+import {isNpmModule, isRelativeModule, mergeMethods, createCodeFrame} from './util';
 
 /**
  * 模块构造函数选项
@@ -107,8 +107,10 @@ export default class Module {
       this.ast = acorn.parse(this.content, options.advanced.parseOptions);
     } catch (err) {
       this.compiler.logger.error(`${err.message}, at ${chalk.underline(this.filename)}`);
-      printCodeFrame(this.content, err.loc.line, err.loc.column);
-      this.compiler.exit(err);
+      console.log(
+        createCodeFrame(this.content, err.loc.line, err.loc.column)
+      );
+      this.compiler.raise(err);
     }
     this.findDeps();
   }
@@ -188,7 +190,7 @@ export default class Module {
    * @private
    */
   private findDeps() {
-    acornWalk.simple(this.ast as acorn.Node, {
+    const visitor: Record<string, (...args: any[]) => any> = {
       CallExpression: (node: any) => {
         if (
           node.callee.type === 'Identifier'
@@ -253,7 +255,13 @@ export default class Module {
           );
         }
       }
-    });
+    };
+
+    if (this.compiler._acornCustomVisitor) {
+      mergeMethods(visitor, this.compiler._acornCustomVisitor);
+    }
+
+    acornWalk.simple(this.ast as acorn.Node, visitor, undefined, {});
   }
 
   /**
@@ -278,7 +286,7 @@ export default class Module {
         this.compiler.logger.error(
           `Cannot find module '${moduleId}' at ${chalk.underline(this.filename + location)}`
         );
-        this.compiler.exit(err.stack.split('\n').slice(1).join('\n'));
+        this.compiler.raise(err.stack.split('\n').slice(1).join('\n'));
       }
 
       const modules = this.compiler.modules;

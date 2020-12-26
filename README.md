@@ -47,7 +47,10 @@ transformer.transform({
   },
   cache: false,
   plugins: [
-    transformer.plugins.emitFile()
+    transformer.plugins.emitFile(),
+    transformer.plugins.replace({
+      'proesss.env.NODE_ENV': '"development"'
+    })
   ],
   advanced: {
     parseOptions: {
